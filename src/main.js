@@ -17,6 +17,10 @@ import '@/permission' // permission control
 import * as filters from './filters'
 import './utils/dialog'
 import preventReClick from '@/utils/preventReClick.js'
+import formCreate from '@form-create/element-ui'
+
+Vue.use(formCreate)
+
 // set ElementUI lang to EN
 Vue.use(ElementUI, { locale })
 

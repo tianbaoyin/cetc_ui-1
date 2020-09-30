@@ -364,6 +364,25 @@ export const asyncRoutes = [
         }
       },
       {
+        path: 'yewumanage',
+        name: '业务管理',
+        component: () => import('@/views/sysmanage/yewumanage/index'),
+        meta: { title: '业务管理', icon: 'flow', roles: ['root', 'process_manage'] },
+        children: [
+          {
+            path: 'formmanagement',
+            component: () => import('@/views/sysmanage/yewumanage/formmanage/index.vue'),
+            name: '表单管理',
+            meta: {
+              title: '表单管理',
+              icon: 'ok',
+              roles: ['root', 'process_manager_model']
+            }
+          }
+
+        ]
+      },
+      {
         path: 'processmanage',
         name: '流程管理',
         component: () => import('@/views/sysmanage/activiti/index'),
