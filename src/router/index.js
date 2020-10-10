@@ -198,7 +198,6 @@ export const asyncRoutes = [
     },
     children: [
       {
-        // 令号管理侧边栏只显示令号列表，所以第二层路由和第三层路由显示的是同样的名称
         path: 'template',
         name: 'documentTemplate',
         component: () => import('@/views/qc/documentCenter/template'),
@@ -206,19 +205,11 @@ export const asyncRoutes = [
 
       },
       {
-        path: 'generator',
-        component: () => import('@/views/qc/documentCenter/generator'),
+        path: 'generate',
+        name: 'documentGenerate',
+        component: () => import('@/views/qc/documentCenter/generate'),
+        meta: { icon: 'xiangmu', title: '文档生成' }
 
-        redirect: '/codecenter/vulnerabilitydetection/list',
-        meta: { icon: 'xiangmu', roles: ['root', 'document_manager_generate'] },
-        children: [
-          {
-            path: 'list',
-            component: () => import('@/views/qc/documentCenter/generator/list'),
-            name: '文档生成',
-            meta: { title: '文档生成' }
-          }
-        ]
       }
     ]
   },
@@ -363,25 +354,7 @@ export const asyncRoutes = [
           roles: ['root', 'sys_manager_kingdom']
         }
       },
-      {
-        path: 'yewumanage',
-        name: '业务管理',
-        component: () => import('@/views/sysmanage/yewumanage/index'),
-        meta: { title: '业务管理', icon: 'flow', roles: ['root', 'process_manage'] },
-        children: [
-          {
-            path: 'formmanagement',
-            component: () => import('@/views/sysmanage/yewumanage/formmanage/index.vue'),
-            name: '表单管理',
-            meta: {
-              title: '表单管理',
-              icon: 'ok',
-              roles: ['root', 'process_manager_model']
-            }
-          }
 
-        ]
-      },
       {
         path: 'processmanage',
         name: '流程管理',

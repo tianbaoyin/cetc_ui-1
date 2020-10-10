@@ -7,7 +7,7 @@
         style="width: 250px;"
         class="filter-item"
         size="small"
-        placeholder="请输入令号(精确查找)"
+        placeholder="请输入模板名称(模糊查找)"
         clearable
       />
       <el-button
@@ -22,18 +22,18 @@
       <el-button
         type="primary"
         size="small"
-        icon="el-icon-search"
+        icon="el-icon-plus"
         class="filter-item"
         @click="createTemplate()"
       >
-        新建模板
+        模板创建
       </el-button>
     </div>
 
     <el-table
       :data="documentTemplates"
       style="width: 100%"
-      height="250"
+      height="600"
       stripe
       border
       highlight-current-row
