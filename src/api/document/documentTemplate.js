@@ -15,3 +15,12 @@ export function saveDocumentTemplate(data) {
     data
   })
 }
+
+export function deleteDocumentTemplateById(data) {
+  return request({
+    url: '/api-document/documentTemplate/delete',
+    method: 'post',
+    data
+  })
+}
+

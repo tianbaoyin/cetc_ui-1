@@ -14,11 +14,9 @@ module.exports = {
    * @description Whether show the logo in sidebar
    */
   sidebarLogo: true,
-
+  uploadUrl: '',
   bpmnUrl: 'http://127.0.0.1:9812',
-
   sysMonitorUrl: 'http://127.0.0.1:83',
-
   sysZipkinUrl: 'http://127.0.0.1:84'
 
 }

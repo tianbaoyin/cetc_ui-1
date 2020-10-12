@@ -3,7 +3,7 @@
 
     <div class="filter-container">
       <el-input
-
+        v-model="pageEntity.docName"
         style="width: 250px;"
         class="filter-item"
         size="small"
@@ -24,16 +24,15 @@
         size="small"
         icon="el-icon-plus"
         class="filter-item"
-        @click="createTemplate()"
+        @click="dialogFormVisible = true"
       >
         模板创建
       </el-button>
     </div>
 
     <el-table
+      v-loading="tableLoading"
       :data="documentTemplates"
-      style="width: 100%"
-      height="600"
       stripe
       border
       highlight-current-row
@@ -46,6 +45,11 @@
       <el-table-column
         prop="docName"
         label="模板名称"
+        width="120"
+      />
+      <el-table-column
+        prop="docType"
+        label="模板类型"
         width="120"
       />
       <el-table-column
@@ -88,7 +92,7 @@
             type="danger"
             size="small"
             icon="el-icon-delete"
-            @click="openPageOffice(row)"
+            @click="handleDeleteTemplate(row)"
           >
             删除
           </el-button>
@@ -98,14 +102,24 @@
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="pageEntity.pageNum" :limit.sync="pageEntity.pageSize" @pagination="handleFilter()" />
 
-    <el-dialog title="文档模板定义" :visible.sync="dialogFormVisible">
-      <el-tabs v-model="activeName">
+    <el-dialog title="文档模板定义" :visible.sync="dialogFormVisible" width="800px" :close-on-click-modal="false" :before-close="handleCloseDialog">
+      <el-tabs v-model="activeTab" @tab-click="changeTabs">
         <el-tab-pane label="新建模板" name="first">
           <el-form :model="template">
-            <el-form-item label="文档模板名称" :label-width="formLabelWidth">
-              <el-input v-model="template.docName" autocomplete="off" />
-            </el-form-item>
+            <el-form-item label="文档模板名称" label-width="100px">
+              <el-row>
+                <el-col :span="18">
+                  <el-input v-model="template.docName" autocomplete="off" placeholder="请输入模板名称" />
+                </el-col>
+                <el-col :span="6">
+                  <el-select v-model="template.docType">
+                    <el-option label="doc" value=".doc" />
+                    <el-option label="docx" value=".docx" />
+                  </el-select>
+                </el-col>
+              </el-row>
 
+            </el-form-item>
           </el-form>
         </el-tab-pane>
         <el-tab-pane label="上传本地模板" name="second">
@@ -124,8 +138,8 @@
       </el-tabs>
 
       <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
-        <el-button type="primary" @click="saveDocumentTemplate()">确 定</el-button>
+        <el-button size="small" @click="clearForm">取 消</el-button>
+        <el-button size="small" :disabled="disabledSubmit" type="primary" @click="saveDocumentTemplate()">确 定</el-button>
       </div>
     </el-dialog>
   </div>
@@ -133,7 +147,7 @@
 
 <script>
 
-import { findPageDocumentTemplates, saveDocumentTemplate } from '@/api/document/documentTemplate.js'
+import { findPageDocumentTemplates, saveDocumentTemplate, deleteDocumentTemplateById } from '@/api/document/documentTemplate.js'
 import pagination from '@/components/Pagination'
 export default {
   components: {
@@ -141,20 +155,35 @@ export default {
   },
   data() {
     return {
-      activeName: 'first',
+      tableLoading: true,
+      // 默认不能提交
+      disabledSubmit: true,
+      // 新增模板默认位置
+      activeTab: 'first',
       dialogFormVisible: false,
       formLabelWidth: '120px',
       template: {
         docName: '',
-        docType: ''
+        docType: '.doc'
 
       },
       documentTemplates: [],
       total: 0,
       pageEntity: {
+        docName: '',
         pageNum: 1,
         pageSize: 10
 
+      }
+    }
+  },
+  watch: {
+    // 监听模板名称的长度如果大于1，则可以提交
+    'template.docName': function(newvalue) {
+      if (newvalue.length > 1) {
+        this.disabledSubmit = false
+      } else {
+        this.disabledSubmit = true
       }
     }
   },
@@ -164,31 +193,78 @@ export default {
   methods: {
 
     handleFilter() {
+      this.tableLoading = true
       findPageDocumentTemplates(this.pageEntity).then(response => {
-        console.log(response.data.list)
         this.documentTemplates = response.data.list
         this.total = response.data.total
+        this.tableLoading = false
       }).catch(() => {
 
       })
     },
 
     saveDocumentTemplate() {
-      saveDocumentTemplate(this.template).then(response => {
-        this.dialogFormVisible = false
-        this.$message.success('保存模板成功')
-        this.handleFilter()
+      this.$confirm('确认提交模板？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        saveDocumentTemplate(this.template).then(response => {
+          this.dialogFormVisible = false
+          this.$message.success('保存模板成功')
+          this.handleFilter()
+          this.clearForm()
+        }).catch(() => {
+
+        })
       }).catch(() => {
-
+        this.$message.info('已取消提交')
       })
-    },
-
-    createTemplate() {
-      this.dialogFormVisible = true
     },
 
     openPageOffice(row) {
       window.location.href = "javascript:POBrowser.openWindowModeless('http://localhost:9807/word?templateId=" + row.id + "','width=1200px;height=800px;');"
+    },
+
+    handleDeleteTemplate(row) {
+      console.log(row)
+      this.$confirm('确认要删除模板《' + row.docName + '》？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.deleteTemplate(row)
+      }).catch(() => {
+        this.$message.info('已取消删除')
+      })
+    },
+    // 删除模板
+    deleteTemplate(id) {
+      deleteDocumentTemplateById(id).then(() => {
+        this.$message.success('删除成功')
+        this.handleFilter()
+      }).catch(() => {
+        this.$message.error('删除失败')
+      })
+    },
+    changeTabs(tab, event) {
+      // 只要切换tab就初始化默认值
+      this.template = {
+        docName: '',
+        docType: '.doc'
+      }
+    },
+    handleCloseDialog(done) {
+      this.clearForm()
+      done()
+    },
+    clearForm() {
+      this.dialogFormVisible = false
+      this.activeTab = 'first'
+      this.template = {
+        docName: '',
+        docType: '.doc'
+      }
     }
   }
 }
