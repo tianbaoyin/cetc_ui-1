@@ -84,6 +84,14 @@
           >
             编辑模板
           </el-button>
+          <el-button
+            type="danger"
+            size="small"
+            icon="el-icon-delete"
+            @click="openPageOffice(row)"
+          >
+            删除
+          </el-button>
 
         </template></el-table-column>
 
@@ -91,12 +99,30 @@
     <pagination v-show="total>0" :total="total" :page.sync="pageEntity.pageNum" :limit.sync="pageEntity.pageSize" @pagination="handleFilter()" />
 
     <el-dialog title="文档模板定义" :visible.sync="dialogFormVisible">
-      <el-form :model="template">
-        <el-form-item label="文档模板名称" :label-width="formLabelWidth">
-          <el-input v-model="template.docName" autocomplete="off" />
-        </el-form-item>
+      <el-tabs v-model="activeName">
+        <el-tab-pane label="新建模板" name="first">
+          <el-form :model="template">
+            <el-form-item label="文档模板名称" :label-width="formLabelWidth">
+              <el-input v-model="template.docName" autocomplete="off" />
+            </el-form-item>
 
-      </el-form>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane label="上传本地模板" name="second">
+          <el-upload
+            class="upload-demo"
+            drag
+            action="https://jsonplaceholder.typicode.com/posts/"
+            multiple
+          >
+            <i class="el-icon-upload" />
+            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+            <div slot="tip" class="el-upload__tip">只能上传doc/docx文件</div>
+          </el-upload>
+
+        </el-tab-pane>
+      </el-tabs>
+
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">取 消</el-button>
         <el-button type="primary" @click="saveDocumentTemplate()">确 定</el-button>
@@ -115,6 +141,7 @@ export default {
   },
   data() {
     return {
+      activeName: 'first',
       dialogFormVisible: false,
       formLabelWidth: '120px',
       template: {
