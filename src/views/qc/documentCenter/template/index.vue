@@ -45,7 +45,6 @@
       <el-table-column
         prop="docName"
         label="模板名称"
-        width="120"
       />
       <el-table-column
         prop="docType"
@@ -53,60 +52,75 @@
         width="120"
       />
       <el-table-column
-        prop="docLocation"
-        label="模板路径"
-        width="300"
-      />
-      <el-table-column
         label="模板创建时间"
       >
-
         <template slot-scope="scope">
           {{ scope.row.createDate | parseTime('{y}-{m}-{d} {h}:{i}:{s}') }}
         </template>
       </el-table-column>
-
+      <el-table-column
+        label="备注"
+        prop="remarks"
+      />
       <el-table-column
         label="操作"
-        width="320"
+        width="200"
         fixed="right"
       >
         <template slot-scope="{row}">
-          <el-button
-            type="primary"
-            size="small"
-            icon="el-icon-edit"
-          >
-            修改
-          </el-button>
-
-          <el-button
-            type="primary"
-            size="small"
-            icon="el-icon-edit"
-            @click="openPageOffice(row)"
-          >
-            编辑模板
-          </el-button>
-          <el-button
-            type="danger"
-            size="small"
-            icon="el-icon-delete"
-            @click="handleDeleteTemplate(row)"
-          >
-            删除
-          </el-button>
-
-        </template></el-table-column>
+          <el-tooltip class="item" effect="dark" content="修改" placement="top-start">
+            <el-button
+              type="primary"
+              size="small"
+              icon="el-icon-edit"
+              circle
+              @click="handleUpdateTemplate(row)"
+            />
+          </el-tooltip>
+          <el-tooltip class="item" effect="dark" content="编辑模板" placement="top-start">
+            <el-button
+              type="info"
+              size="small"
+              icon="el-icon-tickets"
+              circle
+              @click="openPageOffice(row)"
+            />
+          </el-tooltip>
+          <el-tooltip class="item" effect="dark" content="删除" placement="top-start">
+            <el-button
+              type="danger"
+              size="small"
+              icon="el-icon-delete"
+              circle
+              @click="handleDeleteTemplate(row)"
+            />
+          </el-tooltip>
+          <el-tooltip class="item" effect="dark" content="下载" placement="top-start">
+            <el-button
+              type="success"
+              size="small"
+              circle
+              icon="el-icon-download"
+              @click="downloadTemplate(row)"
+            />
+          </el-tooltip>
+        </template>
+      </el-table-column>
 
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="pageEntity.pageNum" :limit.sync="pageEntity.pageSize" @pagination="handleFilter()" />
 
-    <el-dialog title="文档模板定义" :visible.sync="dialogFormVisible" width="800px" :close-on-click-modal="false" :before-close="handleCloseDialog">
+    <el-dialog
+      title="文档模板定义"
+      :visible.sync="dialogFormVisible"
+      width="800px"
+      :close-on-click-modal="false"
+      :before-close="handleCloseDialog"
+    >
       <el-tabs v-model="activeTab" @tab-click="changeTabs">
         <el-tab-pane label="新建模板" name="first">
-          <el-form :model="template">
-            <el-form-item label="文档模板名称" label-width="100px">
+          <el-form :model="template" label-width="100px">
+            <el-form-item label="模板名称">
               <el-row>
                 <el-col :span="18">
                   <el-input v-model="template.docName" autocomplete="off" placeholder="请输入模板名称" />
@@ -118,22 +132,49 @@
                   </el-select>
                 </el-col>
               </el-row>
-
+            </el-form-item>
+            <el-form-item label="备注">
+              <el-input
+                v-model="template.remarks"
+                type="textarea"
+                placeholder="这里描述下模板"
+                maxlength="250"
+                show-word-limit
+              />
             </el-form-item>
           </el-form>
         </el-tab-pane>
         <el-tab-pane label="上传本地模板" name="second">
-          <el-upload
-            class="upload-demo"
-            drag
-            action="https://jsonplaceholder.typicode.com/posts/"
-            multiple
-          >
-            <i class="el-icon-upload" />
-            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-            <div slot="tip" class="el-upload__tip">只能上传doc/docx文件</div>
-          </el-upload>
-
+          <el-row>
+            <el-col :span="12">
+              <el-upload
+                ref="upload"
+                drag
+                accept=".doc,.docx"
+                :action="url"
+                :multiple="false"
+                :limit="1"
+                :headers="headers"
+                :before-upload="beforeUpload"
+                :on-success="onSuccess"
+                :before-remove="beforeRemove"
+              >
+                <i class="el-icon-upload" />
+                <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                <div slot="tip" class="el-upload__tip">只能上传doc/docx文件</div>
+              </el-upload>
+            </el-col>
+            <el-col :span="12">
+              <el-input
+                v-model="template.remarks"
+                rows="8"
+                type="textarea"
+                placeholder="这里描述下模板"
+                maxlength="250"
+                show-word-limit
+              />
+            </el-col>
+          </el-row>
         </el-tab-pane>
       </el-tabs>
 
@@ -142,12 +183,48 @@
         <el-button size="small" :disabled="disabledSubmit" type="primary" @click="saveDocumentTemplate()">确 定</el-button>
       </div>
     </el-dialog>
+    <el-dialog
+      title="模板更新"
+      :close-on-click-modal="false"
+      :visible.sync="updateTemplateDialogVisible"
+      width="600"
+      :before-close="handleCloseupdateTemplate"
+    >
+      <el-form
+        ref="templateForm"
+        :model="template"
+        label-width="100px"
+        :rules="templateRules"
+      >
+        <el-form-item label="模板名称" prop="docName">
+          <el-input v-model="template.docName" autocomplete="off" placeholder="请输入模板名称">
+            <template slot="append">{{ template.docType }}</template>
+          </el-input>
+        </el-form-item>
+
+        <el-form-item label="备注">
+          <el-input
+            v-model="template.remarks"
+            type="textarea"
+            placeholder="这里描述下模板"
+            maxlength="250"
+            show-word-limit
+          />
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="clearUpdateForm">取 消</el-button>
+        <el-button type="primary" @click="updateTemplate('templateForm')">确 定</el-button>
+      </span>
+
+    </el-dialog>
   </div>
 </template>
 
 <script>
-
-import { findPageDocumentTemplates, saveDocumentTemplate, deleteDocumentTemplateById } from '@/api/document/documentTemplate.js'
+import { uploadDocTemplateUrl, openOfficeUri, downloadDocTemplateUrl } from '@/settings.js'
+import { getToken } from '@/utils/auth'
+import { findPageDocumentTemplates, saveDocumentTemplate, deleteDocumentTemplateById, checkFileExist, updateTemplate } from '@/api/document/documentTemplate.js'
 import pagination from '@/components/Pagination'
 export default {
   components: {
@@ -155,6 +232,10 @@ export default {
   },
   data() {
     return {
+      // 更新模板的模态框
+      updateTemplateDialogVisible: false,
+      // 模板保存的路径
+      url: uploadDocTemplateUrl,
       tableLoading: true,
       // 默认不能提交
       disabledSubmit: true,
@@ -162,10 +243,16 @@ export default {
       activeTab: 'first',
       dialogFormVisible: false,
       formLabelWidth: '120px',
+      headers: {
+        Authorization: 'Bearer' + getToken()
+      },
       template: {
         docName: '',
-        docType: '.doc'
-
+        docType: '.doc',
+        remarks: ''
+      },
+      templateRules: {
+        docName: [{ required: true, message: '请输入文档名称', trigger: 'blur' }]
       },
       documentTemplates: [],
       total: 0,
@@ -191,7 +278,6 @@ export default {
     this.handleFilter()
   },
   methods: {
-
     handleFilter() {
       this.tableLoading = true
       findPageDocumentTemplates(this.pageEntity).then(response => {
@@ -211,9 +297,13 @@ export default {
       }).then(() => {
         saveDocumentTemplate(this.template).then(response => {
           this.dialogFormVisible = false
-          this.$message.success('保存模板成功')
           this.handleFilter()
           this.clearForm()
+          if (response.flag) {
+            this.$message.success('保存模板成功')
+          } else {
+            this.$message.error('保存模板失败')
+          }
         }).catch(() => {
 
         })
@@ -221,13 +311,49 @@ export default {
         this.$message.info('已取消提交')
       })
     },
-
+    handleUpdateTemplate(row) {
+      console.log('要更新的文件', row)
+      this.template.docName = row.docName
+      this.template.docType = row.docType
+      this.template.id = row.id
+      this.template.docLocation = row.docLocation
+      this.template.remarks = row.remarks
+      this.updateTemplateDialogVisible = true
+    },
+    updateTemplate(form) {
+      this.updateTemplateDialogVisible = false
+      this.$refs[form].validate((valid) => {
+        if (valid) {
+          updateTemplate(this.template).then(res => {
+            this.$message.success('更行成功')
+            this.handleFilter()
+            this.clearUpdateForm()
+          }).catch(() => {
+            this.$message.error('更新失败')
+          })
+        }
+      })
+    },
+    handleCloseupdateTemplate(done) {
+      this.clearUpdateForm()
+      done()
+    },
+    clearUpdateForm() {
+      console.log('清空历史')
+      this.updateTemplateDialogVisible = false
+      this.template = {
+        id: null,
+        docLocation: null,
+        docName: '',
+        docType: '.doc',
+        remarks: ''
+      }
+    },
     openPageOffice(row) {
-      window.location.href = "javascript:POBrowser.openWindowModeless('http://localhost:9807/word?templateId=" + row.id + "','width=1200px;height=800px;');"
+      window.location.href = "javascript:POBrowser.openWindowModeless('" + openOfficeUri + '/word?templateId=' + row.id + "','width=1200px;height=800px;');"
     },
 
     handleDeleteTemplate(row) {
-      console.log(row)
       this.$confirm('确认要删除模板《' + row.docName + '》？', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -259,12 +385,58 @@ export default {
       done()
     },
     clearForm() {
+      // 清空上传文件列表
+      if (this.$refs.upload) {
+        this.$refs.upload.clearFiles()
+      }
       this.dialogFormVisible = false
       this.activeTab = 'first'
       this.template = {
         docName: '',
-        docType: '.doc'
+        docType: '.doc',
+        remarks: ''
       }
+    },
+    beforeUpload(file) {
+      const fileType = file.name.substring(file.name.lastIndexOf('.') + 1)
+      if (fileType !== 'docx' && fileType !== 'doc') {
+        this.$message.error('请选择.docx或.doc文件')
+        return false
+      }
+    },
+    beforeRemove(file, fileList) {
+      this.template.docName = ''
+      this.template.docType = ''
+      this.template.docLocation = null
+      this.template.remarks = ''
+    },
+    onSuccess(response, file, fileList) {
+      if (response.flag) {
+        this.template.docName = file.name.substring(0, file.name.lastIndexOf('.'))
+        this.template.docType = file.name.substring(file.name.lastIndexOf('.'))
+        this.template.docLocation = response.data
+      } else {
+        console.log('文件上传失败')
+      }
+    },
+    downloadTemplate(row) {
+      checkFileExist({ 'path': row.docLocation }).then(res => {
+        if (res.flag) {
+          location.href = downloadDocTemplateUrl + '/documentTemplate/downloadTemplate?path=' + encodeURIComponent(row.docLocation)
+        } else {
+          this.$confirm('该模板不存在，是否删除该条记录？', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.deleteTemplate(row)
+          }).catch(() => {
+
+          })
+        }
+      }).catch(() => {
+        this.$message.error('模板准备失败，请稍后再试')
+      })
     }
   }
 }

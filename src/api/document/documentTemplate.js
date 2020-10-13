@@ -24,3 +24,19 @@ export function deleteDocumentTemplateById(data) {
   })
 }
 
+export function checkFileExist(data) {
+  return request({
+    url: '/api-document/documentTemplate/checkFileExist',
+    method: 'post',
+    data
+  })
+}
+
+export function updateTemplate(data) {
+  return request({
+    url: '/api-document/documentTemplate/update',
+    method: 'post',
+    data
+  })
+}
+
