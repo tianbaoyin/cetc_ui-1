@@ -137,3 +137,9 @@ export function findCodeById(id) {
   })
 }
 
+export function findCodeByKingdom(id) {
+  return request({
+    url: 'api-project/code/findCodeByKingdom/' + id,
+    method: 'get'
+  })
+}

@@ -216,7 +216,7 @@ export default {
 <style lang="scss" scoped>
   .project-tree{
       height:760px;
-       overflow:auto
+      overflow:auto
   }
     /* 菜单滚动条 */
   .project-tree::-webkit-scrollbar {

@@ -7,6 +7,12 @@ export function findPageDocumentTemplates(data) {
     data
   })
 }
+export function findAllDocumentTemplates() {
+  return request({
+    url: '/api-document/documentTemplate/findAllDocumentTemplates',
+    method: 'get'
+  })
+}
 
 export function saveDocumentTemplate(data) {
   return request({

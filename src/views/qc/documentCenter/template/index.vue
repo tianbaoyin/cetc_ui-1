@@ -1,6 +1,5 @@
 <template>
   <div class="app-container">
-
     <div class="filter-container">
       <el-input
         v-model="pageEntity.docName"
@@ -15,7 +14,7 @@
         size="small"
         icon="el-icon-search"
         class="filter-item"
-        @click="handleFilter()"
+        @click="pageList()"
       >
         搜索
       </el-button>
@@ -49,6 +48,11 @@
       <el-table-column
         prop="docType"
         label="模板类型"
+        width="120"
+      />
+      <el-table-column
+        prop="createBy"
+        label="创建者"
         width="120"
       />
       <el-table-column
@@ -108,7 +112,7 @@
       </el-table-column>
 
     </el-table>
-    <pagination v-show="total>0" :total="total" :page.sync="pageEntity.pageNum" :limit.sync="pageEntity.pageSize" @pagination="handleFilter()" />
+    <pagination v-show="total>0" :total="total" :page.sync="pageEntity.pageNum" :limit.sync="pageEntity.pageSize" @pagination="pageList()" />
 
     <el-dialog
       title="文档模板定义"
@@ -137,6 +141,7 @@
               <el-input
                 v-model="template.remarks"
                 type="textarea"
+                rows="6"
                 placeholder="这里描述下模板"
                 maxlength="250"
                 show-word-limit
@@ -154,7 +159,6 @@
                 :action="url"
                 :multiple="false"
                 :limit="1"
-                :headers="headers"
                 :before-upload="beforeUpload"
                 :on-success="onSuccess"
                 :before-remove="beforeRemove"
@@ -183,6 +187,7 @@
         <el-button size="small" :disabled="disabledSubmit" type="primary" @click="saveDocumentTemplate()">确 定</el-button>
       </div>
     </el-dialog>
+
     <el-dialog
       title="模板更新"
       :close-on-click-modal="false"
@@ -190,31 +195,52 @@
       width="600"
       :before-close="handleCloseupdateTemplate"
     >
-      <el-form
-        ref="templateForm"
-        :model="template"
-        label-width="100px"
-        :rules="templateRules"
-      >
-        <el-form-item label="模板名称" prop="docName">
-          <el-input v-model="template.docName" autocomplete="off" placeholder="请输入模板名称">
-            <template slot="append">{{ template.docType }}</template>
-          </el-input>
-        </el-form-item>
+      <el-tabs v-model="updateTemplateTabs">
+        <el-tab-pane label="基本信息" name="first">
+          <el-form
+            ref="templateForm"
+            :model="template"
+            label-width="100px"
+            :rules="templateRules"
+          >
+            <el-form-item label="模板名称" prop="docName">
+              <el-input v-model="template.docName" autocomplete="off" placeholder="请输入模板名称">
+                <template slot="append">{{ template.docType }}</template>
+              </el-input>
+            </el-form-item>
 
-        <el-form-item label="备注">
-          <el-input
-            v-model="template.remarks"
-            type="textarea"
-            placeholder="这里描述下模板"
-            maxlength="250"
-            show-word-limit
-          />
-        </el-form-item>
-      </el-form>
+            <el-form-item label="备注">
+              <el-input
+                v-model="template.remarks"
+                type="textarea"
+                rows="6"
+                placeholder="这里描述下模板"
+                maxlength="250"
+                show-word-limit
+              />
+            </el-form-item>
+          </el-form>
+        </el-tab-pane>
+        <el-tab-pane label="自定义字段" name="second">
+          <span style="color:#eb9fbc">生成文档时需要手工填写的字段<span>
+            <br><br>
+            <el-checkbox-group v-model="checkedLabels" @change="handleCheckedChange">
+              <el-checkbox label="产品型号" />
+              <el-checkbox label="产品代号" />
+              <el-checkbox label="产品用途" />
+              <el-checkbox label="软件用途" />
+              <el-checkbox label="需方" />
+              <el-checkbox label="开发方" />
+              <el-checkbox label="运行环境" />
+              <el-checkbox label="文档概述" />
+            </el-checkbox-group>
+          </span></span></el-tab-pane>
+
+      </el-tabs>
+
       <span slot="footer" class="dialog-footer">
-        <el-button @click="clearUpdateForm">取 消</el-button>
-        <el-button type="primary" @click="updateTemplate('templateForm')">确 定</el-button>
+        <el-button size="small" @click="clearUpdateForm">取 消</el-button>
+        <el-button size="small" type="primary" @click="updateTemplate('templateForm')">确 定</el-button>
       </span>
 
     </el-dialog>
@@ -223,7 +249,6 @@
 
 <script>
 import { uploadDocTemplateUrl, openOfficeUri, downloadDocTemplateUrl } from '@/settings.js'
-import { getToken } from '@/utils/auth'
 import { findPageDocumentTemplates, saveDocumentTemplate, deleteDocumentTemplateById, checkFileExist, updateTemplate } from '@/api/document/documentTemplate.js'
 import pagination from '@/components/Pagination'
 export default {
@@ -232,6 +257,8 @@ export default {
   },
   data() {
     return {
+      checkedLabels: [],
+      updateTemplateTabs: 'first',
       // 更新模板的模态框
       updateTemplateDialogVisible: false,
       // 模板保存的路径
@@ -243,13 +270,11 @@ export default {
       activeTab: 'first',
       dialogFormVisible: false,
       formLabelWidth: '120px',
-      headers: {
-        Authorization: 'Bearer' + getToken()
-      },
       template: {
         docName: '',
         docType: '.doc',
-        remarks: ''
+        remarks: '',
+        checkedLabels: ''
       },
       templateRules: {
         docName: [{ required: true, message: '请输入文档名称', trigger: 'blur' }]
@@ -264,10 +289,11 @@ export default {
       }
     }
   },
+
   watch: {
     // 监听模板名称的长度如果大于1，则可以提交
     'template.docName': function(newvalue) {
-      if (newvalue.length > 1) {
+      if (newvalue.length > 0) {
         this.disabledSubmit = false
       } else {
         this.disabledSubmit = true
@@ -275,10 +301,14 @@ export default {
     }
   },
   created() {
-    this.handleFilter()
+    this.pageList()
   },
   methods: {
-    handleFilter() {
+    // 测试用方法
+    handleCheckedChange() {
+      this.template.checkedLabels = this.checkedLabels.toString()
+    },
+    pageList() {
       this.tableLoading = true
       findPageDocumentTemplates(this.pageEntity).then(response => {
         this.documentTemplates = response.data.list
@@ -297,7 +327,7 @@ export default {
       }).then(() => {
         saveDocumentTemplate(this.template).then(response => {
           this.dialogFormVisible = false
-          this.handleFilter()
+          this.pageList()
           this.clearForm()
           if (response.flag) {
             this.$message.success('保存模板成功')
@@ -312,21 +342,26 @@ export default {
       })
     },
     handleUpdateTemplate(row) {
-      console.log('要更新的文件', row)
+      // 初始化模板
       this.template.docName = row.docName
       this.template.docType = row.docType
       this.template.id = row.id
       this.template.docLocation = row.docLocation
       this.template.remarks = row.remarks
       this.updateTemplateDialogVisible = true
+      this.checkedLabels = []
+      if (row.checkedLabels) {
+        this.checkedLabels = row.checkedLabels.split(',')
+      }
     },
     updateTemplate(form) {
       this.updateTemplateDialogVisible = false
+      console.log(this.template)
       this.$refs[form].validate((valid) => {
         if (valid) {
           updateTemplate(this.template).then(res => {
             this.$message.success('更行成功')
-            this.handleFilter()
+            this.pageList()
             this.clearUpdateForm()
           }).catch(() => {
             this.$message.error('更新失败')
@@ -339,14 +374,15 @@ export default {
       done()
     },
     clearUpdateForm() {
-      console.log('清空历史')
       this.updateTemplateDialogVisible = false
+      this.updateTemplateTabs = 'first' // 初始化tabs位置
       this.template = {
         id: null,
         docLocation: null,
         docName: '',
         docType: '.doc',
-        remarks: ''
+        remarks: '',
+        checkedLabels: ''
       }
     },
     openPageOffice(row) {
@@ -368,7 +404,7 @@ export default {
     deleteTemplate(id) {
       deleteDocumentTemplateById(id).then(() => {
         this.$message.success('删除成功')
-        this.handleFilter()
+        this.pageList()
       }).catch(() => {
         this.$message.error('删除失败')
       })
@@ -451,7 +487,7 @@ export default {
   }
 
   .el-carousel__item:nth-child(2n) {
-    background-color: #99a9bf;
+    background-color: #532436;
   }
 
   .el-carousel__item:nth-child(2n+1) {
