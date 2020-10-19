@@ -25,7 +25,7 @@
           <div slot="header" class="clearfix">
             <span>高频使用模板</span>
           </div>
-          <img src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png" class="image">
+          <bar />
         </el-card>
       </el-col>
     </el-row>
@@ -34,15 +34,20 @@
       <div slot="header" class="clearfix">
         <span>文档生成统计</span>
       </div>
-      <img src="https://shadow.elemecdn.com/app/element/hamburger.9cf7b091-55e9-11e9-a976-7f4d0b07eef6.png" class="image">
+      <line />
     </el-card>
 
   </div>
 </template>
 
 <script>
+import bar from '@/views/qc/documentCenter/generate/commponents/bar.vue'
+// import line from '@/views/qc/documentCenter/generate/commponents/line.vue'
 export default {
-
+  components: {
+    bar
+    // line
+  }
 }
 </script>
 

@@ -1,6 +1,7 @@
 <template>
   <div>
-    <el-button type="primary" icon="el-icon-office-building" @click="dialogVisible = true">快速生成文档</el-button>
+    <el-button type="primary" icon="el-icon-office-building" size="small" @click="dialogVisible = true">快速生成文档</el-button>
+    <el-button style="float:right" icon="el-icon-close" size="small" circle @click="showDashbord" />
     <el-divider />
     <el-timeline :reverse="reverse">
       <el-timeline-item
@@ -18,6 +19,7 @@
       width="30%"
       :close-on-click-modal="false"
     >
+      <span>{{ node }}</span>
       <el-form
         ref="templateForm"
         :model="templateForm"
@@ -94,6 +96,13 @@
 import { findAllDocumentTemplates } from '@/api/document/documentTemplate.js'
 
 export default {
+  props: {
+    node: {
+      type: Object,
+      require: true,
+      default: null
+    }
+  },
   data() {
     return {
       active: 1,
@@ -108,7 +117,7 @@ export default {
       docSource: {},
       templates: [],
       customField: [],
-      node: {},
+
       dialogVisible: false,
       progressDialogVisible: false,
       drawer: false,
@@ -132,6 +141,7 @@ export default {
 
     // 查询所有的文档模板
     findAllDocumentTemplates() {
+      console.log('节点', this.node)
       findAllDocumentTemplates().then(res => {
         this.templates = res.data
         // 将文档存入map
@@ -180,6 +190,9 @@ export default {
           clearInterval(interval)
         }
       }, 100)
+    },
+    showDashbord() {
+      this.$emit('listenShowDashbord')
     }
   }
 }
