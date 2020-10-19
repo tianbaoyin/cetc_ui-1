@@ -2,7 +2,7 @@
   <div>
     <el-tabs v-model="projectTabs">
       <el-tab-pane name="projectInfo" label="项目信息">
-        <projectinfo :node="node" />
+        <projectinfo :node="node" :tab3="tab3" />
       </el-tab-pane>
 
     </el-tabs>
@@ -21,7 +21,13 @@ export default {
     node: {
       type: Object,
       required: true
+    },
+    tab3: {
+      type: String,
+      requird: true,
+      default: ''
     }
+
   },
 
   data() {

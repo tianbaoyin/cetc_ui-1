@@ -132,13 +132,15 @@ export default {
   },
   watch: {
     node() {
-      this.count1(false)
-      this.count2(false)
-      this.count3(false)
-      this.count4(false)
+      if (this.tab3 === 'dataAnalysis') {
+        this.count1(false)
+        this.count2(false)
+        this.count3(false)
+        this.count4(false)
+      }
     },
     tab3(val) {
-      if (val === 'forth') {
+      if (val === 'dataAnalysis') {
         this.count1(false)
         this.count2(false)
         this.count3(false)
@@ -146,6 +148,14 @@ export default {
       }
     }
 
+  },
+
+  created() {
+    console.log('cccs')
+    this.count1(false)
+    this.count2(false)
+    this.count3(false)
+    this.count4(false)
   },
 
   methods: {

@@ -461,7 +461,9 @@ export default {
   watch: {
     // node节点点击时就更新
     node() {
-      this.pageList()
+      if (this.tab2 === 'codeProjectManager') {
+        this.pageList()
+      }
     },
     tab2(val) {
       if (val === 'codeProjectManager') {

@@ -150,10 +150,14 @@ export default {
 
   watch: {
     node(val) {
-      this.findAll()
+      if (this.tab3 === 'monthCommit') {
+        this.findAll()
+      }
     },
     tab3(val) {
-      this.findAll()
+      if (val === 'monthCommit') {
+        this.findAll()
+      }
     }
 
   },

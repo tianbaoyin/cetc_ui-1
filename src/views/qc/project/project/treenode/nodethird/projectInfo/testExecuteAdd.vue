@@ -13,22 +13,24 @@
           <el-row :gutter="20">
             <el-col :span="12">
               <el-form-item
-                prop="useTime"
-                label="测试执行时间"
-              >
-                <el-input v-model="projectExcute.useTime" placeholder="测试所用时间">
-                  <template slot="append">小时</template>
-                </el-input>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item
                 prop="excuteLocal"
                 label="测试执行地点"
               >
                 <el-input v-model="projectExcute.excuteLocal" maxlength="126" placeholder="测试执行地点" />
               </el-form-item>
             </el-col>
+            <el-col :span="12">
+              <el-form-item
+                prop="useTime"
+                label="测试执行时间"
+              >
+                <el-input v-model="projectExcute.useTime" placeholder="测试所用时间">
+                  <template slot="append">小时</template>
+                </el-input>
+
+              </el-form-item>
+            </el-col>
+
           </el-row>
 
           <el-row :gutter="20">
@@ -71,7 +73,7 @@
               >
                 <el-select v-model="projectExcute.testQus" style="width:100%" placeholder="测试问题数据">
                   <el-option
-                    v-for="item in options"
+                    v-for="item in options1"
                     :key="item.value"
                     :label="item.label"
                     :value="item.value"
@@ -86,7 +88,7 @@
               >
                 <el-select v-model="projectExcute.testType" style="width:100%" placeholder="测试类型">
                   <el-option
-                    v-for="item in options"
+                    v-for="item in options2"
                     :key="item.value"
                     :label="item.label"
                     :value="item.value"
@@ -101,7 +103,7 @@
               >
                 <el-select v-model="projectExcute.zerenbumen" style="width:100%" placeholder="责任部门">
                   <el-option
-                    v-for="item in options"
+                    v-for="item in options3"
                     :key="item.value"
                     :label="item.label"
                     :value="item.value"
@@ -289,6 +291,7 @@
   </div>
 </template>
 <script>
+import { queryDicValuesByDicType } from '@/api/dicValue.js'
 import { addProjectExcute, updateProjectExcute } from '@/api/project/projectExcute.js'
 export default {
   name: 'TestExecuteAdd',
@@ -323,22 +326,12 @@ export default {
         monthCommitId: this.monthCommitForm.id
       },
       activeNames: ['1'],
-      options: [{
-        value: '选项1',
-        label: '黄金糕'
-      }, {
-        value: '选项2',
-        label: '双皮奶'
-      }, {
-        value: '选项3',
-        label: '蚵仔煎'
-      }, {
-        value: '选项4',
-        label: '龙须面'
-      }, {
-        value: '选项5',
-        label: '北京烤鸭'
-      }],
+      ceshiwentishujuKey: 'month_commit_testproblem_data',
+      ceshileixingKey: 'month_commit_testtype',
+      zerenbumen: 'month_commit_resp_dept',
+      options1: [],
+      options2: [],
+      options3: [],
       rules: {
         useTime: [{ validator: valdateUseTime, trigger: 'blur' }],
         excuteLocal: [{ required: true, message: '测试执行地点不能为空', trigger: 'blur' }]
@@ -353,8 +346,35 @@ export default {
   },
   created() {
     this.initPage()
+    this.queryDicValuesByDicType1(this.ceshiwentishujuKey)
+    this.queryDicValuesByDicType2(this.ceshileixingKey)
+    this.queryDicValuesByDicType3(this.zerenbumen)
   },
   methods: {
+    queryDicValuesByDicType1(dic) {
+      queryDicValuesByDicType(dic).then(response => {
+        this.options1 = response.data
+      }).catch(() => {
+
+      })
+    },
+
+    queryDicValuesByDicType2(dic) {
+      queryDicValuesByDicType(dic).then(response => {
+        this.options2 = response.data
+      }).catch(() => {
+
+      })
+    },
+
+    queryDicValuesByDicType3(dic) {
+      queryDicValuesByDicType(dic).then(response => {
+        this.options3 = response.data
+      }).catch(() => {
+
+      })
+    },
+
     initPage() {
       this.projectExcute = this.projectexcute
 
@@ -389,6 +409,7 @@ export default {
             })
           } else {
             this.projectExcute.monthCommitId = this.monthCommitForm.id
+            console.log(this.projectExcute)
             addProjectExcute(this.projectExcute).then(res => {
               this.$message.success('提交成功')
               this.$emit('closeDrawer')

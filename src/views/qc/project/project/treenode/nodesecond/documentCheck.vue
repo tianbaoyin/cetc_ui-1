@@ -48,7 +48,7 @@
       </el-select>
       <el-input v-model="searchEntity.designer" style="width: 150px;" class="filter-item" size="small" placeholder="设计师" />
       <el-button type="primary" size="small" icon="el-icon-search" class="filter-item" @click="getPage()">搜索</el-button>
-      <el-button v-permission="['root','project_manager_project_second_document_add']" type="primary" size="small" icon="el-icon-plus" class="filter-item" @click="add()">新增</el-button>
+      <el-button type="primary" size="small" icon="el-icon-plus" class="filter-item" @click="add()">新增</el-button>
     </div>
     <el-drawer
       size="60%"
@@ -131,16 +131,42 @@
       <el-table-column
         label="操作"
 
-        width="200"
+        width="300"
         fixed="right"
       >
         <template slot-scope="scope">
-          <el-button v-permission="['root','project_manager_project_second_document_edit']" type="primary" size="small" icon="el-icon-edit" @click="updata(scope.row)">编辑</el-button>
-          <el-button v-permission="['root','project_manager_project_second_document_delete']" type="danger" size="small" icon="el-icon-delete" @click="deleteOne(scope.row)">删除</el-button>
+          <el-button type="primary" size="small" icon="el-icon-edit" @click="updata(scope.row)">编辑</el-button>
+          <el-button v-preventReClick type="danger" size="small" icon="el-icon-delete" @click="deleteOne(scope.row)">删除</el-button>
+          <el-button type="success" size="small" icon="el-icon-delete" @click="handleImportAlm(scope.row)">导出</el-button>
         </template>
       </el-table-column>
     </el-table>
     <pagination v-show="total>0" :total="total" :page.sync="searchEntity.pageNum" :limit.sync="searchEntity.pageSize" @pagination="getPage()" />
+
+    <el-dialog v-dialogDrag :close-on-click-modal="false" title="数据导出" :visible.sync="documentCheckToAlmDialog">
+      <el-form ref="documentCheckToAlmform" :rules="rules" :model="documentCheckToAlmform">
+        <el-form-item label="导出途径" prop="way" :label-width="formLabelWidth">
+          <el-radio v-model="documentCheckToAlmform.way" label="alm">ALM</el-radio>
+          <el-radio v-model="documentCheckToAlmform.way" label="excel">Excel</el-radio>
+        </el-form-item>
+        <el-form-item v-if="documentCheckToAlmform.way==='alm'" label="目标项目" prop="docCheckAlmProject" :label-width="formLabelWidth">
+          <el-select v-model="documentCheckToAlmform.docCheckAlmProject" placeholder="请选择">
+            <el-option
+              v-for="item in docCheckAlmProjects"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
+
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="documentCheckToAlmDialog = false">取 消</el-button>
+        <el-button v-preventReClick type="primary" @click="importToAlm()">确 定</el-button>
+      </div>
+    </el-dialog>
+
     <el-dialog
       v-dialogDrag
       title="文档问题"
@@ -198,6 +224,8 @@
   </div>
 </template>
 <script>
+import { findAlmProjects } from '@/api/hpalm/alm.js'
+import { docCheckToAlm } from '@/api/hpalm/docCheck.js'
 import permission from '@/directive/permission/index.js' // 权限判断指令
 import { queryDicValuesByDicType } from '@/api/dicValue.js'
 import { getPageList, delDocumentCheck, getAnnoList, delAnno } from '@/api/project/documentCheck.js'
@@ -224,6 +252,9 @@ export default {
   },
   data() {
     return {
+      docCheckAlmDomain: '产品软件文档审查项目',
+      docCheckAlmProjects: [],
+
       drawerCount: 0,
       drawer: false,
       optionType: '',
@@ -231,6 +262,7 @@ export default {
       annoTypeMap: {},
       dialogVisible: false,
       loading: true,
+      formLabelWidth: '120px',
       annoLoading: false,
       entity: {},
       documentList: [],
@@ -238,6 +270,20 @@ export default {
       total: 0,
       annTotal: 0,
       title: '文档审查新增',
+      documentCheckToAlmDialog: false,
+      documentCheckToAlmform: {
+        docCheckId: null,
+        way: '',
+        docCheckAlmProject: ''
+      },
+      rules: {
+        way: [
+          { required: true, message: '请选择导出方式', trigger: 'change' }
+        ],
+        docCheckAlmProject: [
+          { required: true, message: '请选择目标项目', trigger: 'change' }
+        ]
+      },
       searchAnnoEntity: {
         pageNum: 1,
         pageSize: 10,
@@ -262,7 +308,9 @@ export default {
   },
   watch: {
     node() {
-      this.getPage()
+      if (this.tab2 === 'documentCheck') {
+        this.getPage()
+      }
     },
     tab2(val) {
       if (val === 'documentCheck') {
@@ -292,8 +340,17 @@ export default {
     })
     this.getPage()
     this.getAnnoTypeList()
+    this.findAlmDocProjects()
   },
   methods: {
+    findAlmDocProjects() {
+      findAlmProjects(this.docCheckAlmDomain).then(response => {
+        this.docCheckAlmProjects = response.data
+      }).catch(() => {
+
+      })
+    },
+
     closeDraw() {
       this.drawer = false
       this.getPage()
@@ -317,6 +374,34 @@ export default {
         this.$message.error('批注类型获取失败')
       })
     },
+    handleImportAlm(row) {
+      this.documentCheckToAlmform = {
+        docCheckId: null,
+        way: '',
+        docCheckAlmDomain: '产品软件文档审查项目',
+        docCheckAlmProject: ''
+      }
+      this.documentCheckToAlmform.docCheckId = row.id
+      this.documentCheckToAlmDialog = true
+    },
+
+    importToAlm() {
+      this.$refs.documentCheckToAlmform.validate((valid) => {
+        if (valid) {
+          if (this.documentCheckToAlmform.way === 'alm') {
+            docCheckToAlm(this.documentCheckToAlmform).then(response => {
+              this.documentCheckToAlmDialog = false
+              this.$message.success('导入Alm成功')
+            }).catch(() => {
+
+            })
+          } else {
+            this.$message.success('导出Excel成功')
+          }
+        }
+      })
+    },
+
     showAnnoList(data) {
       this.annoLoading = true
       this.dialogVisible = true

@@ -270,10 +270,12 @@ export default {
   },
   watch: {
     node() {
-      this.getPage()
+      if (this.tab3 === 'documentCheck') {
+        this.getPage()
+      }
     },
     tab3(val) {
-      if (val === 'second') {
+      if (val === 'documentCheck') {
         this.getPage()
       }
     }

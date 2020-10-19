@@ -19,6 +19,8 @@ module.exports = {
 
   sysMonitorUrl: 'http://127.0.0.1:83',
 
-  sysZipkinUrl: 'http://127.0.0.1:84'
+  sysZipkinUrl: 'http://127.0.0.1:84',
+
+  documentCheckUrl: 'http://127.0.0.1:82/api-project/documentcheck/uploadFile'
 
 }

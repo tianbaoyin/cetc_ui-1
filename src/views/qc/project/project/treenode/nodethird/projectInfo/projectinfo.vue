@@ -121,28 +121,41 @@ export default {
     node: {
       type: Object,
       required: true
+    },
+
+    tab3: {
+      type: String,
+      requird: true,
+      default: ''
     }
   },
   data() {
     const valdateCodeSize = (rule, value, callback) => {
-      if (Number(value)) {
-        callback()
-      } else {
+      if (value && !Number(value)) {
         callback(new Error('请输入数字'))
+      } else {
+        callback()
       }
     }
     return {
       project: {},
       userList: [],
       rules: {
-        codeSize: [{ validator: valdateCodeSize, trigger: 'blur' }]
+        codeSize: [{ required: false, validator: valdateCodeSize, trigger: 'blur' }]
       }
 
     }
   },
   watch: {
     node() {
-      this.findProjectById()
+      if (this.tab3 === 'projectInfo') {
+        this.findProjectById()
+      }
+    },
+    tab3(val) {
+      if (val === 'projectInfo') {
+        this.findProjectById()
+      }
     }
   },
   created() {

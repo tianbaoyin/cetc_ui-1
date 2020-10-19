@@ -247,7 +247,8 @@ export default {
         username: '',
         fullname: '',
         pageNum: 1,
-        pageSize: 10
+        pageSize: 10,
+        userType: 0
       },
       typeshow: false,
       checkRules: {

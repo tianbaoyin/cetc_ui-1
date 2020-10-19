@@ -14,9 +14,24 @@ export function findAlmConfig() {
   })
 }
 
+export function findAlmSiteConfig() {
+  return request({
+    url: '/api-hpalm/almConfig/findAlmSiteConfig',
+    method: 'get'
+  })
+}
+
 export function saveAlmConfig(data) {
   return request({
     url: '/api-hpalm/almConfig/save',
+    method: 'post',
+    data
+  })
+}
+
+export function saveAlmSiteConfig(data) {
+  return request({
+    url: '/api-hpalm/almConfig/saveAlmSiteConfig',
     method: 'post',
     data
   })
@@ -32,6 +47,13 @@ export function findAlmDomains() {
 export function findAlmProjects(name) {
   return request({
     url: '/api-hpalm/almProject/findProjectsByDomainName/' + name,
+    method: 'get'
+  })
+}
+
+export function findProjectCreateLogs(id) {
+  return request({
+    url: '/api-hpalm/almProject/findProjectCreateLogs/' + id,
     method: 'get'
   })
 }

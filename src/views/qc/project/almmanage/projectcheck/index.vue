@@ -189,7 +189,7 @@
           :label-width="formLabelWidth"
         >
           <el-checkbox-group v-model="selected ">
-            <el-checkbox v-for="testType in testTypeList" :key="testType.id" :label="testType.id">{{ testType.key }}</el-checkbox>
+            <el-checkbox v-for="testType in testTypeList" :key="testType.key" :label="testType.value">{{ testType.value }}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
         <el-form-item label="备注" :label-width="formLabelWidth">
@@ -216,68 +216,186 @@
       title="项目审批单"
       :visible.sync="checkDialogVisible"
       :close-on-click-modal="false"
+      width="1200px"
     >
-      <el-form ref="checkForm" :rules="rules" :model="check">
-        <el-form-item v-if="check.flag" prop="almDomain" label="alm域" :label-width="formLabelWidth">
-          <el-select
-            v-model="check.almDomain"
+      <el-collapse v-model="activeNames" accordion>
+        <el-collapse-item title="待审批项目详情" name="1">
+          <el-form :model="project">
+            <el-row :gutter="20">
+              <el-col :span="8">    <el-form-item label="领域" :label-width="formLabelWidth">
+                <el-input v-model="project.kingdom" disabled autocomplete="off" />
+              </el-form-item></el-col>
+              <el-col :span="8">
+                <el-form-item label="令号" :label-width="formLabelWidth">
+                  <el-input v-model="project.code" disabled autocomplete="off" />
+                </el-form-item></el-col>
+              <el-col :span="8"><el-form-item label="项目名称" :label-width="formLabelWidth">
+                <el-input v-model="project.name" disabled autocomplete="off" />
+              </el-form-item></el-col>
+            </el-row>
 
-            placeholder="您可以从ALM中选择对应的域名"
-            style="width:100%"
-            @change="findAlmProjects()"
-          >
-            <el-option
-              v-for="item in almDomainList"
-              :key="item"
-              :label="item"
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
+            <el-row :gutter="20">
 
-        <el-form-item
-          v-if="check.flag"
-          prop="almProject"
-          label="alm项目"
-          :label-width="formLabelWidth"
-        >
-          <el-select
-            v-model="check.almProject"
-            placeholder="您可以从ALM中选择对应的项目"
-            style="width:100%"
-          >
-            <el-option
-              v-for="item in almProjectList"
-              :key="item"
-              :label="item"
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
+              <el-col :span="8">   <el-form-item label="项目序号" :label-width="formLabelWidth">
+                <el-input v-model="project.num" disabled autocomplete="off" />
+              </el-form-item></el-col>
+              <el-col :span="8"><el-form-item label="测试级别" :label-width="formLabelWidth">
+                <el-input v-model="project.testGrade" disabled autocomplete="off" />
+              </el-form-item></el-col>
+              <el-col :span="8">
+                <el-form-item
+                  label="测试负责人"
+                  :label-width="formLabelWidth"
+                >
+                  <el-select v-model="project.testLeader" el-select filterable placeholder="请选择" disabled style="width:100%">
+                    <el-option
+                      v-for="item in userList"
+                      :key="item.id"
+                      :label="item.fullname"
+                      :value="item.username"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
 
-        <el-form-item label="待审批项目" :label-width="formLabelWidth">
-          <el-input v-model="check.projectName" disabled placeholder="请输入内容" />
+            <el-form-item
+              prop="testType"
+              label="测试类型"
+              :label-width="formLabelWidth"
+            >
+              <el-checkbox-group v-model="selected ">
+                <el-checkbox v-for="testType in testTypeList" :key="testType.key" :label="testType.value">{{ testType.value }}</el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
+            <el-form-item label="申请备注" :label-width="formLabelWidth">
+              <el-input
+                v-model="project.remark"
+                type="textarea"
+                autocomplete="off"
+                rows="4"
+                maxlength="254"
+                show-word-limit
+                placeholder="无"
+                disabled
+              />
+            </el-form-item>
 
-        </el-form-item>
+          </el-form>
 
-        <el-form-item label="是否同意" prop="flag" :label-width="formLabelWidth">
-          <el-radio-group v-model="check.flag">
-            <el-radio :label="true">是</el-radio>
-            <el-radio :label="false">否</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="审批备注" :label-width="formLabelWidth">
-          <el-input
-            v-model="check.comments"
-            type="textarea"
-            autocomplete="off"
-            rows="4"
-            maxlength="254"
-            show-word-limit
-            placeholder="您可以在此针对您的工作填写一些备注信息"
-          />
-        </el-form-item>
-      </el-form>
+        </el-collapse-item>
+
+        <el-collapse-item title="审批详情" name="2">
+          <el-form ref="checkForm" :rules="rules" :model="check">
+            <el-row :gutter="20">
+              <el-col :span="8">
+                <el-form-item label="是否同意" prop="flag" :label-width="formLabelWidth">
+                  <el-radio-group v-model="check.flag" @change="flagChange()">
+                    <el-radio :label="true">是</el-radio>
+                    <el-radio :label="false">否</el-radio>
+                  </el-radio-group>
+                </el-form-item>
+              </el-col>
+              <el-col :span="10">
+                <el-form-item v-if="check.flag" label="是否自动生成测试类型" prop="testTypeGen" :label-width="formLabelWidth2">
+                  <el-radio-group v-model="check.testTypeGen">
+                    <el-radio :label="true">是</el-radio>
+                    <el-radio :label="false">否</el-radio>
+                  </el-radio-group>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="6">
+                <el-form-item v-if="check.flag" label="是否使用模板" prop="isTemplate" :label-width="formLabelWidth">
+                  <el-radio-group v-model="check.isTemplate">
+                    <el-radio :label="true">是</el-radio>
+                    <el-radio :label="false">否</el-radio>
+                  </el-radio-group>
+                </el-form-item>
+              </el-col>
+
+              <el-col :span="9">
+                <el-form-item v-if="check.isTemplate" prop="almDomain" label="alm域" :label-width="formLabelWidth">
+                  <el-select
+                    v-model="check.almDomain"
+
+                    placeholder="您可以从ALM中选择对应的域名"
+                    style="width:100%"
+                    @change="findAlmProjects()"
+                  >
+                    <el-option
+                      v-for="item in almDomainList"
+                      :key="item"
+                      :label="item"
+                      :value="item"
+                    />
+                  </el-select>
+                </el-form-item>
+
+              </el-col>
+              <el-col :span="9">
+                <el-form-item
+                  v-if="check.isTemplate"
+                  prop="almProject"
+                  label="alm项目"
+                  :label-width="formLabelWidth"
+                >
+                  <el-select
+                    v-model="check.almProject"
+
+                    placeholder="您可以从ALM中选择对应的项目"
+                    style="width:100%"
+                  >
+                    <el-option
+                      v-for="item in almProjectList"
+                      :key="item"
+                      :label="item"
+                      :value="item"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item v-if="check.isTemplate" label="复制策略" :label-width="formLabelWidth">
+                  <el-checkbox-group v-model="checkCopyList">
+                    <el-checkbox label="1">customizations</el-checkbox>
+                    <el-checkbox label="2">requirements</el-checkbox>
+                    <el-checkbox label="4">tests</el-checkbox>
+                    <el-checkbox label="8">test sets</el-checkbox>
+                    <el-checkbox label="16">test runs</el-checkbox>
+
+                    <el-checkbox label="32">defects</el-checkbox>
+                    <el-checkbox label="64">history</el-checkbox>
+                    <el-checkbox label="128">public favorites views</el-checkbox>
+                    <el-checkbox label="256">users and user groups</el-checkbox>
+                    <el-checkbox label="512">private favorites views</el-checkbox>
+
+                    <el-checkbox label="1024">mail</el-checkbox>
+                    <el-checkbox label="2048">all</el-checkbox>
+
+                  </el-checkbox-group>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <el-form-item label="审批备注" :label-width="formLabelWidth">
+              <el-input
+                v-model="check.comments"
+                type="textarea"
+                autocomplete="off"
+                rows="4"
+                maxlength="254"
+                show-word-limit
+                placeholder="您可以在此针对您的工作填写一些备注信息"
+              />
+            </el-form-item>
+          </el-form>
+        </el-collapse-item>
+      </el-collapse>
       <div slot="footer" class="dialog-footer">
         <el-button v-preventReClick :loading="saveCheckButton" type="primary" @click="handleAgree()">确 定</el-button>
       </div>
@@ -295,13 +413,13 @@
 
 <script>
 
+import { findAlmDomains, findAlmProjects } from '@/api/hpalm/alm.js'
 import { findTasksByAssign } from '@/api/activiti/myprocess'
 import { handleCheck } from '@/api/activiti/mycheck'
 import { getByUsername } from '@/api/user.js'
 import { findProjectById } from '@/api/project/project'
 import { findAllUser } from '@/api/user.js'
 import { queryDicValuesByDicType } from '@/api/dicValue.js'
-import { getTestType } from '@/api/project/project.js'
 import history from '@/views/qc/project/almmanage/projectcheck/components/history.vue'
 import waves from '@/directive/waves'
 import pagination from '@/components/Pagination'
@@ -313,9 +431,36 @@ export default {
     history
   },
   data() {
+    const validateAlmDomain = (rule, value, callback) => {
+      if (!this.check.isTemplate) {
+        callback()
+      } else {
+        if (this.check.almDomain === null || this.check.almDomain === '') {
+          callback(new Error('请选择ALM模板域'))
+        } else {
+          callback()
+        }
+      }
+    }
+
+    const validateAlmProject = (rule, value, callback) => {
+      if (!this.check.isTemplate) {
+        callback()
+      } else {
+        if (this.check.almProject === null || this.check.almProject === '') {
+          callback(new Error('请选择ALM模板项目'))
+        } else {
+          callback()
+        }
+      }
+    }
+
     return {
+      checkCopyList: [],
+      activeNames: ['1'],
       tableLoading: false,
       formLabelWidth: '120px',
+      formLabelWidth2: '230px',
       total: 0,
       userLoading: false,
       user: {},
@@ -329,10 +474,13 @@ export default {
       check: {
         id: null,
         flag: true,
+        isTemplate: false,
+        testTypeGen: null,
         projectName: null,
         almDomain: null,
         almProject: null,
         bussinesskey: null,
+        copyOptions: 0,
         comments: null
 
       },
@@ -350,13 +498,30 @@ export default {
       rules: {
         flag: [
           { required: true, message: '请选择审批结果', trigger: 'change' }
+
+        ],
+        isTemplate: [
+          { required: true, message: '请选择是否使用模板', trigger: 'change' }
+
+        ],
+        testTypeGen: [
+          { required: true, message: '请选择是否生成测试类型', trigger: 'change' }
+        ],
+        almDomain: [
+          { message: '请选择模板域', validator: validateAlmDomain }
+        ],
+        almProject: [
+          { message: '请选择模板项目', validator: validateAlmProject }
         ]
+
       }
     }
   },
+
   created() {
     this.handleFilter()
     this.getUserList()
+    this.findAlmDomainList()
     // 查询类型
     queryDicValuesByDicType('testType').then(res => {
       this.testTypeList = res.data
@@ -364,21 +529,64 @@ export default {
       console.warn('测试类型查询失败')
     })
   },
+
   methods: {
+
     getUserList() {
       findAllUser().then(res => {
         this.userList = res.data
       }).catch()
     },
+    flagChange() {
+      if (this.check.flag) {
+        this.check.isTemplate = null
+      } else {
+        this.check.isTemplate = false
+      }
+    },
     searchApply(row) {
       if (this.$refs['checkForm']) {
         this.$refs['checkForm'].resetFields()
       }
-      this.checkDialogVisible = true
-      this.check.id = row.id
-      this.check.projectName = row.applyTitle
-      this.check.flag = null
-      this.check.comments = null
+
+      findProjectById(row.buisnessKey).then(response => {
+        this.activeNames = ['2']
+        this.project = response.data
+
+        if (this.project.testType) {
+          this.selected = JSON.parse(this.project.testType)
+        } else {
+          this.selected = []
+        }
+
+        this.check.id = row.id
+        this.check.projectName = row.applyTitle
+        this.check.flag = null
+        this.check.isTemplate = null
+        this.check.almDomain = null
+        this.check.almProject = null
+        this.check.comments = null
+        this.check.copyOptions = 0
+        this.checkDialogVisible = true
+      }).catch(() => {
+
+      })
+    },
+
+    findAlmDomainList() {
+      findAlmDomains().then(response => {
+        this.almDomainList = response.data
+      }).catch(() => {
+
+      })
+    },
+
+    findAlmProjects() {
+      findAlmProjects(this.check.almDomain).then(response => {
+        this.almProjectList = response.data
+      }).catch(() => {
+
+      })
     },
     handleFilter() {
       this.tableLoading = true
@@ -415,23 +623,22 @@ export default {
     searchProject(row) {
       findProjectById(Number(row.buisnessKey)).then(response => {
         this.project = response.data
-        this.getProjectTestType()
-      }).catch(() => {
 
-      })
-    },
-
-    getProjectTestType() {
-      getTestType(this.project.id).then(res => {
-        this.selected = res.data
+        if (this.project.testType) {
+          this.selected = JSON.parse(this.project.testType)
+        } else {
+          this.selected = []
+        }
         this.projectFormVisible = true
       }).catch(() => {
-        this.$message.error('查询测试类型失败！')
+
       })
     },
+
     handleAgree() {
       this.$refs['checkForm'].validate((valid) => {
         if (valid) {
+          this.computedCopyOptions()
           handleCheck(this.check.id, this.check).then(response => {
             this.$message.success('审批完成')
             this.checkDialogVisible = false
@@ -440,6 +647,13 @@ export default {
             this.$message.error('审批失败！')
           })
         }
+      })
+    },
+
+    computedCopyOptions() {
+      this.check.copyOptions = 0
+      this.checkCopyList.forEach(item => {
+        this.check.copyOptions += Number(item)
       })
     },
     handleClose(done) {

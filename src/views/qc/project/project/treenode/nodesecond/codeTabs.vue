@@ -8,10 +8,10 @@
         <documentCheck :node="node" :tab2="activeName2" />
       </el-tab-pane>
       <el-tab-pane lazy label="SQA" name="sqa">
-        <sqa :node="node" :tab2="activeName2" />
+        <sqa :node="node" :tab2="activeName2" :sqadicfields="sqaDicFields" />
       </el-tab-pane>
 
-      <el-tab-pane lazy label="令号信息" name="fifth">
+      <el-tab-pane lazy label="令号信息" name="codeInfo">
         <codeInfo :node="node" :tab2="activeName2" />
       </el-tab-pane>
     </el-tabs>
@@ -22,10 +22,9 @@
 import projectManagement from '@/views/qc/project/project/treenode/nodesecond/projectManagement.vue'
 import documentCheck from '@/views/qc/project/project/treenode/nodesecond/documentCheck.vue'
 import sqa from '@/views/qc/project/project/treenode/nodesecond/sqa/index.vue'
-// import projectCount from '@/views/qc/project/project/treenode/nodesecond/count/index.vue'
-// import sqa1 from '@/views/qc/project/project/treenode/nodesecond/sqa.vue'
 import codeInfo from '@/views/qc/project/project/treenode/nodesecond/codeInfo.vue'
 import checkPermission from '@/utils/permission'
+import { queryDicValuesByDicType } from '@/api/dicValue.js'
 
 export default {
   name: 'CodeTabs',
@@ -33,8 +32,6 @@ export default {
     projectManagement,
     documentCheck,
     sqa,
-    // projectCount,
-    // sqa1,
     codeInfo
   },
   props: {
@@ -45,8 +42,14 @@ export default {
   },
   data() {
     return {
-      activeName2: 'codeProjectManager'
+      activeName2: 'codeProjectManager',
+      dicType: 'management_sqa_field',
+      sqaDicFields: []
     }
+  },
+
+  created() {
+    this.findSQAFieldByDic()
   },
   methods: {
     checkPermission,
@@ -55,6 +58,14 @@ export default {
     },
     chickProject(newpath) {
       this.$router.replace({ path: newpath })
+    },
+
+    findSQAFieldByDic() {
+      queryDicValuesByDicType(this.dicType).then(response => {
+        this.sqaDicFields = response.data
+      }).catch(() => {
+
+      })
     }
   }
 

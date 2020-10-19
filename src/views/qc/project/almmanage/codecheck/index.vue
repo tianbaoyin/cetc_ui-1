@@ -119,7 +119,7 @@
             icon="el-icon-edit"
             @click="searchCode(row)"
           >
-            详情查看
+            令号详情
           </el-button>
 
           <el-button

@@ -1,12 +1,12 @@
 <template>
   <div class="app-container">
 
-    <el-input v-model="pageEntity.dicName" placeholder="字典名称" style="width: 200px;" class="filter-item" size="medium" />
-    <el-button class="filter-item" type="primary" size="medium" icon="el-icon-search" @click="fuzzyQueryDic">
+    <el-input v-model="pageEntity.dicName" placeholder="字典名称" style="width: 200px;" class="filter-item" size="small" />
+    <el-button class="filter-item" type="primary" size="small" icon="el-icon-search" @click="fuzzyQueryDic">
       搜索
     </el-button>
 
-    <el-button v-permission="['root','sys_manager_dic_add']" class="filter-item" type="primary" size="medium" icon="el-icon-plus" @click="handleSave">
+    <el-button v-permission="['root','sys_manager_dic_add']" class="filter-item" type="primary" size="small" icon="el-icon-plus" @click="handleSave">
       新增
     </el-button>
     <el-divider />
@@ -28,17 +28,20 @@
         header-align="center"
         label="字典名称"
         width="350"
+        :show-overflow-tooltip="true"
       />
       <el-table-column
         prop="dicType"
         header-align="center"
         label="字典类型"
         width="200"
+        :show-overflow-tooltip="true"
       />
       <el-table-column
         prop="remarks"
         header-align="center"
         label="描述"
+        :show-overflow-tooltip="true"
       />
       <el-table-column
         label="状态"
@@ -71,10 +74,10 @@
 
       <el-table-column align="center" label="操作" width="300">
         <template slot-scope="{row}">
-          <el-button v-permission="['root','sys_manager_dic_edit']" type="primary" size="small" icon="el-icon-edit" @click="handleUpdate(row)">编辑</el-button>
-          <el-button v-permission="['root','sys_manager_dic_delete']" type="danger" size="small" icon="el-icon-delete" @click="handleDelete(row)">删除</el-button>
+          <el-button type="primary" size="small" icon="el-icon-edit" @click="handleUpdate(row)">编辑</el-button>
+          <el-button type="danger" size="small" icon="el-icon-delete" @click="handleDelete(row)">删除</el-button>
           <router-link :to="'/sysmanage/dicValue/?dicId='+row.id">
-            <el-button v-permission="['root','sys_manager_dic_value']" type="success" size="small" icon="el-icon-s-order">字典数据</el-button>
+            <el-button type="success" size="small" icon="el-icon-s-order">字典数据</el-button>
           </router-link>
         </template>
       </el-table-column>

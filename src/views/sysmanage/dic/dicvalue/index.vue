@@ -1,12 +1,12 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
-      <el-input v-model="pageEntity.key" placeholder="字典标签" style="width: 200px;" class="filter-item" size="medium" />
-      <el-button class="filter-item" type="primary" size="medium" icon="el-icon-search" @click="handleFilter">
+      <el-input v-model="pageEntity.key" placeholder="字典标签" style="width: 200px;" class="filter-item" size="small" />
+      <el-button class="filter-item" type="primary" size="small" icon="el-icon-search" @click="handleFilter">
         搜索
       </el-button>
 
-      <el-button v-permission="['root','permission_manager_dic_value_add']" class="filter-item" type="primary" size="medium" icon="el-icon-plus" @click="handleSave">
+      <el-button v-permission="['root','permission_manager_dic_value_add']" class="filter-item" type="primary" size="small" icon="el-icon-plus" @click="handleSave">
         新增
       </el-button>
     </div>

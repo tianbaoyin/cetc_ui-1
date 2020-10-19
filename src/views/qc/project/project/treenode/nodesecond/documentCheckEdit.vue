@@ -266,6 +266,8 @@
   </div>
 </template>
 <script>
+
+import { documentCheckUrl } from '@/settings.js'
 import { getToken } from '@/utils/auth'
 import { mapGetters } from 'vuex'
 import pagination from '@/components/Pagination'
@@ -295,9 +297,8 @@ export default {
   },
   data() {
     return {
-      url: 'http://127.0.0.1:82/api-project/documentcheck/uploadFile',
+      url: documentCheckUrl,
       headers: {
-        // 'Access-Control-Allow-Origin': '*',
         Authorization: 'Bearer' + getToken()
       },
       tabPosition: 'left',

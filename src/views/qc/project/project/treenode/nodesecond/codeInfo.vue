@@ -164,10 +164,12 @@ export default {
   },
   watch: {
     node() {
-      this.getCode()
+      if (this.tab2 === 'codeInfo') {
+        this.getCode()
+      }
     },
     tab2(val) {
-      if (val === 'fifth') {
+      if (val === 'codeInfo') {
         this.getCode()
       }
     }

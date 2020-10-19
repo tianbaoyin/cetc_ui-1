@@ -183,6 +183,38 @@ export const asyncRoutes = [
 
     ]
   },
+  // 测试中心
+  {
+    path: '/testcenter',
+    name: 'testcenter',
+    component: Layout,
+    redirect: '/testcenter/codeschema',
+    meta: {
+      title: '测试中心',
+      icon: 'logs'
+    },
+    children: [
+      {
+        path: 'codeschema',
+        name: 'codeschema',
+        component: () => import('@/views/qc/testCenter/codeschema'),
+        meta: { title: '代码规范', icon: 'user-add' }
+      },
+      {
+        path: 'securityhotels',
+        name: 'securityhotels',
+        component: () => import('@/views/qc/testCenter/securityhotels'),
+        meta: { title: '安全漏洞', icon: 'user-add' }
+      },
+      {
+        path: 'fpga',
+        name: 'FPGA',
+        component: () => import('@/views/qc/testCenter/fpga'),
+        meta: { title: 'FPGA', icon: 'user-add' }
+      }
+    ]
+
+  },
 
   // 文档中心
   {
@@ -212,27 +244,6 @@ export const asyncRoutes = [
 
       }
     ]
-  },
-
-  // 知识图谱
-  {
-    path: '/knowledge',
-    name: 'knowledge',
-    component: Layout,
-    redirect: '/knowledge/knowledgeGraph',
-    meta: {
-      title: '知识工程',
-      icon: 'logs'
-    },
-    children: [
-      {
-        path: 'knowledgeGraph',
-        name: 'knowledgeGraph',
-        component: () => import('@/views/qc/knowledge/knowledgeGraph'),
-        meta: { title: '知识图谱', icon: 'user-add' }
-      }
-    ]
-
   },
 
   {
@@ -266,6 +277,26 @@ export const asyncRoutes = [
             meta: { title: '模型构建', icon: 'ok' }
           }
         ]
+      }
+    ]
+
+  },
+  // 知识图谱
+  {
+    path: '/knowledge',
+    name: 'knowledge',
+    component: Layout,
+    redirect: '/knowledge/knowledgeGraph',
+    meta: {
+      title: '知识工程',
+      icon: 'logs'
+    },
+    children: [
+      {
+        path: 'knowledgeGraph',
+        name: 'knowledgeGraph',
+        component: () => import('@/views/qc/knowledge/knowledgeGraph'),
+        meta: { title: '知识图谱', icon: 'user-add' }
       }
     ]
 
@@ -309,7 +340,12 @@ export const asyncRoutes = [
     meta: { title: '系统管理', icon: 'example', roles: ['root', 'sys_manager'] },
     alwaysShow: true,
     children: [
-
+      {
+        path: 'security',
+        name: '三员用户',
+        component: () => import('@/views/sysmanage/security/index'),
+        meta: { title: '三员用户', icon: 'log', roles: ['sys_manager_security'] }
+      },
       {
         path: 'log',
         name: '日志管理',

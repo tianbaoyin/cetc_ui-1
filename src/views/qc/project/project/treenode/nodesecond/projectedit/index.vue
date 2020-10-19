@@ -38,14 +38,16 @@
             />
           </el-select>
         </el-form-item>
+
         <el-form-item
           prop="testType"
           label="测试类型"
         >
-          <el-checkbox-group v-model="selected ">
-            <el-checkbox v-for="testType in testTypeList" :key="testType.id" :label="testType.id">{{ testType.key }}</el-checkbox>
+          <el-checkbox-group v-model="selected " @change="testTypeChange">
+            <el-checkbox v-for="testType in testTypeList" :key="testType.key" :label="testType.value">{{ testType.value }}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
+
         <el-form-item
           label="测试负责人"
         >
@@ -73,7 +75,7 @@
 <script>
 import { findUserListIsNotSys } from '@/api/user.js'
 import { queryDicValuesByDicType } from '@/api/dicValue.js'
-import { addProject, updateProject, getTestType, getProjectNum, hasProject } from '@/api/project/project.js'
+import { addProject, updateProject, getProjectNum, hasProject } from '@/api/project/project.js'
 export default {
   name: 'ProjectEdit',
   props: {
@@ -165,9 +167,6 @@ export default {
     }
   },
   watch: {
-    selected(val) {
-      this.project.testType = val
-    },
     drawercount() {
       this.initPage()
     }
@@ -198,19 +197,17 @@ export default {
   methods: {
     initPage() {
       this.clearCache()
-      this.selected = []
       this.btnLoading = false
-
       // 如果不是新增，则查询状态
       if (this.query && this.query.id) {
         this.project = this.query
         this.title = '编辑'
         this.oldName = this.project.name
-        getTestType(this.project.id).then(res => {
-          this.selected = res.data
-        }).catch(() => {
-          this.$message.error('查询测试类型失败！')
-        })
+        if (this.project.testType) {
+          this.selected = JSON.parse(this.project.testType)
+        } else {
+          this.selected = []
+        }
       } else {
         this.project = {
           parentId: Number,
@@ -222,10 +219,15 @@ export default {
           testLeader: '',
           num: ''
         }
+        this.selected = []
         this.project.code = this.query.code
         this.project.parentId = this.query.parentId
       }
     },
+    testTypeChange(val) {
+      this.project.testType = JSON.stringify(val)
+    },
+
     clearCache() {
       if (this.$refs['projectForm']) {
         this.$refs['projectForm'].resetFields()

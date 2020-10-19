@@ -170,10 +170,12 @@ export default {
   },
   watch: {
     node() {
-      this.pageList()
+      if (this.tab3 === 'codeTest') {
+        this.pageList()
+      }
     },
     tab3(val) {
-      if (val === 'third') {
+      if (val === 'codeTest') {
         this.pageList()
       }
     }

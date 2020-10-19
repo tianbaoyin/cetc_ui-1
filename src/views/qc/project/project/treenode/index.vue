@@ -5,7 +5,7 @@
         <el-card class="box-card">
           <div slot="header">
             <span style="font-size:18px;color:#006400">{{ treetitle }}</span>
-            <el-tooltip class="item" effect="dark" content="过滤无关节点" placement="right-start">
+            <el-tooltip class="item" effect="dark" content="我的项目" placement="right-start">
               <el-button
                 type="primary"
                 style="float: right; padding: 5px 5px;margin-left:5px"
@@ -14,7 +14,7 @@
                 @click="checkMyData()"
               />
             </el-tooltip>
-            <el-tooltip class="item" effect="dark" content="刷新所有项目" placement="right-start">
+            <el-tooltip class="item" effect="dark" content="项目总览" placement="right-start">
               <el-button
                 type="primary"
                 style="float: right; padding: 5px 5px"

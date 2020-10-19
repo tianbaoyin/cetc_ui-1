@@ -139,7 +139,7 @@
             waves
             @click="searchApply(row)"
           >
-            审批单
+            审批记录
           </el-button>
 
         </template></el-table-column>
@@ -147,6 +147,7 @@
     <pagination v-show="total>0" :total="total" :page.sync="pageEntity.pageNum" :limit.sync="pageEntity.pageSize" @pagination="handleFilter()" />
 
     <el-dialog v-dialogDrag title="项目详情" append-to-body :visible.sync="projectFormVisible" :close-on-click-modal="false">
+
       <el-form :model="project">
         <el-row :gutter="20">
           <el-col :span="12">    <el-form-item label="领域" :label-width="formLabelWidth">
@@ -195,7 +196,7 @@
           :label-width="formLabelWidth"
         >
           <el-checkbox-group v-model="selected ">
-            <el-checkbox v-for="testType in testTypeList" :key="testType.id" :label="testType.id">{{ testType.key }}</el-checkbox>
+            <el-checkbox v-for="testType in testTypeList" :key="testType.key" :label="testType.value">{{ testType.value }}</el-checkbox>
           </el-checkbox-group>
         </el-form-item>
         <el-form-item label="备注" :label-width="formLabelWidth">
@@ -210,8 +211,8 @@
             disabled
           />
         </el-form-item>
-
       </el-form>
+
       <div slot="footer" class="dialog-footer">
         <el-button type="primary" @click="projectFormVisible=false">关闭</el-button>
       </div>
@@ -219,74 +220,100 @@
 
     <el-dialog
       v-dialogDrag
-      title="项目审批单"
+      title="审批记录"
       append-to-body
       :visible.sync="checkDialogVisible"
       :close-on-click-modal="false"
     >
-      <el-form ref="checkForm" :rules="rules" :model="check">
-        <el-form-item v-if="check.flag" prop="almDomain" label="alm域" :label-width="formLabelWidth">
-          <el-select
-            v-model="check.almDomain"
-            disabled
-            placeholder="您可以从ALM中选择对应的域名"
-            style="width:100%"
-            @change="findAlmProjects()"
-          >
-            <el-option
-              v-for="item in almDomainList"
-              :key="item"
-              :label="item"
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
+      <el-collapse v-model="activeName" accordion>
 
-        <el-form-item
-          v-if="check.flag"
-          prop="almProject"
-          label="alm项目"
-          :label-width="formLabelWidth"
-        >
-          <el-select
-            v-model="check.almProject"
-            disabled
-            placeholder="您可以从ALM中选择对应的项目"
-            style="width:100%"
-          >
-            <el-option
-              v-for="item in almProjectList"
-              :key="item"
-              :label="item"
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
+        <el-collapse-item title="审批记录" name="1">
+          <el-form ref="checkForm" :rules="rules" :model="check">
 
-        <el-form-item label="待审批项目" :label-width="formLabelWidth">
-          <el-input v-model="check.projectName" disabled placeholder="请输入内容" />
+            <el-form-item label="已审批项目" :label-width="formLabelWidth">
+              <el-input v-model="check.projectName" disabled placeholder="请输入内容" />
+            </el-form-item>
 
-        </el-form-item>
+            <el-form-item label="是否同意" prop="flag" :label-width="formLabelWidth">
+              <el-radio-group v-model="check.flag">
+                <el-radio disabled :label="true">是</el-radio>
+                <el-radio disabled :label="false">否</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-row :gutter="20">
 
-        <el-form-item label="是否同意" prop="flag" :label-width="formLabelWidth">
-          <el-radio-group v-model="check.flag">
-            <el-radio disabled :label="true">是</el-radio>
-            <el-radio disabled :label="false">否</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="审批备注" :label-width="formLabelWidth">
-          <el-input
-            v-model="check.comments"
-            type="textarea"
-            autocomplete="off"
-            rows="4"
-            maxlength="254"
-            show-word-limit
+              <el-col :span="12">
+                <el-form-item v-if="check.flag" prop="almDomain" label="alm域" :label-width="formLabelWidth">
+                  <el-select
+                    v-model="check.almDomain"
+                    disabled
+                    placeholder="您可以从ALM中选择对应的域名"
+                    style="width:100%"
+                    @change="findAlmProjects()"
+                  >
+                    <el-option
+                      v-for="item in almDomainList"
+                      :key="item"
+                      :label="item"
+                      :value="item"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item
+                  v-if="check.flag"
+                  prop="almProject"
+                  label="alm项目"
+                  :label-width="formLabelWidth"
+                >
+                  <el-select
+                    v-model="check.almProject"
+                    disabled
+                    placeholder="您可以从ALM中选择对应的项目"
+                    style="width:100%"
+                  >
+                    <el-option
+                      v-for="item in almProjectList"
+                      :key="item"
+                      :label="item"
+                      :value="item"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
 
-            disabled
-          />
-        </el-form-item>
-      </el-form>
+            <el-form-item label="审批备注" :label-width="formLabelWidth">
+              <el-input
+                v-model="check.comments"
+                type="textarea"
+                autocomplete="off"
+                rows="4"
+                maxlength="254"
+                show-word-limit
+
+                disabled
+              />
+            </el-form-item>
+          </el-form>
+        </el-collapse-item>
+        <el-collapse-item title="执行日志" name="2">
+
+          <el-timeline>
+            <el-timeline-item
+              v-for="(activity, index) in projectExecLog"
+              :key="index"
+              :color="activity.color"
+              :timestamp="activity.execTimeStr"
+            >
+              {{ activity.content }}
+            </el-timeline-item>
+          </el-timeline>
+
+        </el-collapse-item>
+      </el-collapse>
+
       <div slot="footer" class="dialog-footer">
         <el-button v-preventReClick :loading="saveCheckButton" type="primary">确 定</el-button>
       </div>
@@ -295,13 +322,12 @@
 </template>
 
 <script>
-
+import { findProjectCreateLogs } from '@/api/hpalm/alm.js'
 import { findHistoryTaskByAssign, findHistoryTaskVariables } from '@/api/activiti/mycheck'
 import { getByUsername } from '@/api/user.js'
 import { findProjectById } from '@/api/project/project'
 import { findAllUser } from '@/api/user.js'
 import { queryDicValuesByDicType } from '@/api/dicValue.js'
-import { getTestType } from '@/api/project/project.js'
 import waves from '@/directive/waves'
 import pagination from '@/components/Pagination'
 
@@ -315,6 +341,7 @@ export default {
       tableLoading: false,
       formLabelWidth: '120px',
       total: 0,
+      activeName: '1',
       userLoading: false,
       user: {},
       userList: [],
@@ -336,7 +363,7 @@ export default {
       },
       saveCheckButton: false,
       processProjectKey: 'cetc_project_apply',
-      taskName: '项目一级审批',
+      taskName: '项目审批',
       tableData: [],
       project: {},
       projectFormVisible: false,
@@ -344,6 +371,7 @@ export default {
       testTypeList: [],
       almDomainList: [],
       almProjectList: [],
+      projectExecLog: [],
       rules: {
         flag: [
           { required: true, message: '请选择审批结果', trigger: 'change' }
@@ -369,6 +397,8 @@ export default {
     },
     searchApply(row) {
       findHistoryTaskVariables(row.id).then(response => {
+        console.log(row)
+        this.findExecLog(row.buisnessKey)
         response.data.forEach(element => {
           if (element.name === 'comments') {
             this.check.comments = element.value
@@ -386,6 +416,15 @@ export default {
         this.check.id = row.id
         this.check.projectName = row.applyTitle
         this.checkDialogVisible = true
+      }).catch(() => {
+
+      })
+    },
+
+    findExecLog(id) {
+      this.projectExecLog = []
+      findProjectCreateLogs(id).then(response => {
+        this.projectExecLog = response.data
       }).catch(() => {
 
       })
@@ -424,21 +463,17 @@ export default {
       findProjectById(Number(row.buisnessKey)).then(response => {
         if (response.data) {
           this.project = response.data
-          this.getProjectTestType()
+          if (this.project.testType) {
+            this.selected = JSON.parse(this.project.testType)
+          } else {
+            this.selected = []
+          }
+          this.projectFormVisible = true
         } else {
           this.$message.warning('该项目已经被删除')
         }
       }).catch(() => {
 
-      })
-    },
-
-    getProjectTestType() {
-      getTestType(this.project.id).then(res => {
-        this.selected = res.data
-        this.projectFormVisible = true
-      }).catch(() => {
-        this.$message.error('查询测试类型失败！')
       })
     }
 

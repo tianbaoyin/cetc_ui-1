@@ -263,7 +263,7 @@ export default {
         title: null
       },
       total: 0,
-      taskName: '新建ALM域',
+      taskName: '令号签收',
       processCodekey: 'cetc_code_apply',
       formLabelWidth: '86px',
       tableData: [],
@@ -303,6 +303,7 @@ export default {
       findHistoryTaskByAssign(this.processCodekey, this.taskName, this.pageEntity).then(response => {
         this.total = response.data.total
         this.tableData = response.data.list
+        console.log(this.tableData)
         this.tableLoading = false
       }).catch(() => {
         this.tableLoading = false

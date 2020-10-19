@@ -2,16 +2,16 @@
   <div>
 
     <el-tabs v-model="activeName" type="border-card">
-      <el-tab-pane lazy label="项目信息" name="first">
+      <el-tab-pane lazy label="项目信息" name="projectInfo">
         <projectInfo :node="node" :tab3="activeName" />
       </el-tab-pane>
-      <el-tab-pane lazy label="文档审查" name="second">
+      <el-tab-pane lazy label="文档审查" name="documentCheck">
         <documentCheck :node="node" :tab3="activeName" />
       </el-tab-pane>
-      <el-tab-pane lazy label="代码测试" name="third">
+      <el-tab-pane lazy label="代码测试" name="codeTest">
         <codeTest :node="node" :tab3="activeName" />
       </el-tab-pane>
-      <el-tab-pane lazy label="项目数据分析" name="forth">
+      <el-tab-pane lazy label="项目数据分析" name="dataAnalysis">
         <dataAnalysis :node="node" :tab3="activeName" />
       </el-tab-pane>
       <el-tab-pane lazy label="项目月度报表" name="monthCommit">
@@ -44,7 +44,7 @@ export default {
   },
   data() {
     return {
-      activeName: 'first'
+      activeName: 'projectInfo'
     }
   },
   methods: {
