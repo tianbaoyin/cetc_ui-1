@@ -22,7 +22,7 @@ export function saveDocumentTemplate(data) {
   })
 }
 
-export function deleteDocumentTemplateById(data) {
+export function deleteDocumentTemplate(data) {
   return request({
     url: '/api-document/documentTemplate/delete',
     method: 'post',
@@ -46,10 +46,11 @@ export function updateTemplate(data) {
   })
 }
 
-export function findFolders() {
+export function findDocumentTemplates(data) {
   return request({
-    url: '/api-document/documentTemplate/findFolders',
-    method: 'get'
+    url: '/api-document/documentTemplate/queryList',
+    method: 'post',
+    data
   })
 }
 

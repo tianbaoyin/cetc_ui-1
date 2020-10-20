@@ -306,7 +306,7 @@
 
 <script>
 import { uploadDocTemplateUrl, openOfficeUri, downloadDocTemplateUrl } from '@/settings.js'
-import { findAllDocumentTemplates, saveDocumentTemplate, deleteDocumentTemplateById, checkFileExist, updateTemplate, findFolders } from '@/api/document/documentTemplate.js'
+import { findAllDocumentTemplates, saveDocumentTemplate, deleteDocumentTemplate, checkFileExist, updateTemplate, findDocumentTemplates } from '@/api/document/documentTemplate.js'
 import { toTreeData } from '@/utils/data-to-tree'
 
 export default {
@@ -389,8 +389,6 @@ export default {
       this.tableLoading = true
       findAllDocumentTemplates().then(response => {
         this.documentTemplates = toTreeData(response.data)
-        // this.total = response.data.total
-
         this.tableLoading = false
       }).catch(() => {
 
@@ -398,7 +396,7 @@ export default {
     },
     // 文件夹相关
     handleCreateFolder() {
-      findFolders().then(res => {
+      findDocumentTemplates(new Map([['folder', true]])).then(res => {
         this.documentTreeData = toTreeData(res.data)
         this.template.folder = true
         this.template.docType = ''
@@ -485,8 +483,8 @@ export default {
       })
     },
     // 删除模板
-    deleteTemplate(id) {
-      deleteDocumentTemplateById(id).then(() => {
+    deleteTemplate(data) {
+      deleteDocumentTemplate(data).then(() => {
         this.$message.success('删除成功')
         this.pageList()
       }).catch(() => {
