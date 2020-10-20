@@ -46,3 +46,10 @@ export function updateTemplate(data) {
   })
 }
 
+export function findFolders() {
+  return request({
+    url: '/api-document/documentTemplate/findFolders',
+    method: 'get'
+  })
+}
+
