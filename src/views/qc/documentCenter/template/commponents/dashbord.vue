@@ -2,7 +2,7 @@
   <div>
     <div class="filter-container">
       <el-input
-        v-model="search"
+        v-model="pageEntity.docName"
         style="width: 250px;"
         class="filter-item"
         size="small"
@@ -40,10 +40,9 @@
         </el-dropdown-menu>
       </el-dropdown>
     </div>
-    <div class="filter-container">
+    <div v-show="!searchFlag" class="filter-container">
       <div class="filter-item">
         <span style="color:#406892;font-size:14px">当前仓库：</span>
-
       </div>
       <div class="filter-item">
         <el-breadcrumb separator="/">
@@ -52,7 +51,7 @@
         </el-breadcrumb>
       </div>
     </div>
-    <!-- tableData.filter(data => !search || data.name.toLowerCase().includes(search.toLowerCase())) -->
+
     <el-table
       v-loading="tableLoading"
       row-key="id"
@@ -64,6 +63,23 @@
       :expand-row-keys="expand"
       @expand-change="expandChange"
     >
+      <el-table-column
+        v-if="searchFlag"
+        label="模板路径"
+        min-width="100px"
+      >
+        <template slot-scope="scope">
+          <el-cascader
+            ref="documentCascader1"
+            v-model="scope.row.parentId"
+            disabled
+            style="width:100%;"
+            :props="{label:'docName',value:'id',checkStrictly: true}"
+            :options="documentTreeData"
+            @change="handleChangeFolder('documentCascader1')"
+          />
+        </template>
+      </el-table-column>
       <el-table-column
         label="模板名称"
       >
@@ -166,6 +182,7 @@
         </template>
       </el-table-column>
     </el-table>
+    <pagination v-show="total>0" :total="total" :page.sync="pageEntity.pageNum" :limit.sync="pageEntity.pageSize" @pagination="handleSearch()" />
     <!-- 新建 -->
     <el-dialog
       v-dialogDrag
@@ -416,9 +433,7 @@
               <el-checkbox label="文档概述" />
             </el-checkbox-group>
           </span></span></el-tab-pane>
-
       </el-tabs>
-
       <span slot="footer" class="dialog-footer">
         <el-button size="small" @click="clearUpdateForm">取 消</el-button>
         <el-button size="small" type="primary" @click="updateTemplate('templateForm')">确 定</el-button>
@@ -430,12 +445,12 @@
 
 <script>
 import { uploadDocTemplateUrl, openOfficeUri, downloadDocTemplateUrl } from '@/settings.js'
-import { saveDocumentTemplate, deleteDocumentTemplate, checkFileExist, updateTemplate, findDocumentTemplates, findDocumentTree, searchDocuments } from '@/api/document/documentTemplate.js'
+import { saveDocumentTemplate, deleteDocumentTemplate, checkFileExist, updateTemplate, findDocumentTemplates, findDocumentTree, findPageDocumentTemplates } from '@/api/document/documentTemplate.js'
 import { toTreeData } from '@/utils/data-to-tree'
-
+import pagination from '@/components/Pagination'
 export default {
   components: {
-
+    pagination
   },
   props: {
     currentNode: {
@@ -472,7 +487,14 @@ export default {
         docName: [{ required: true, message: '请输入文档名称', trigger: 'blur' }]
       },
       documentTemplates: [],
-      search: '',
+      pageEntity: {
+        pageNum: 1,
+        pageSize: 10,
+        docName: '',
+        folder: false
+      },
+      total: 0,
+      searchFlag: false,
       folderNames: ['根'],
       expand: []
     }
@@ -497,8 +519,29 @@ export default {
   },
   created() {
     this.getTreeData()
+    this.findFolders()
   },
   methods: {
+
+    handleSearch() {
+      console.log(this.pageEntity)
+
+      if (this.pageEntity.docName) {
+        this.tableLoading = true
+        findPageDocumentTemplates(this.pageEntity).then(res => {
+          console.log(res)
+          this.documentTemplates = res.data.list
+          this.total = res.data.total
+          this.searchFlag = true
+          this.tableLoading = false
+        }).catch(_ => {
+          this.$message.error('查询失败')
+          this.tableLoading = false
+        })
+      } else {
+        this.getTreeData()
+      }
+    },
     expandChange(row, flag) {
       if (flag) {
         this.addExpand(row.id)
@@ -516,8 +559,10 @@ export default {
       }
     },
     getTreeData() {
+      this.searchFlag = false
       this.tableLoading = true
       let parentId = -1 // 默认parentID是-1
+      this.total = 0
       if (this.currentNode.data) {
         parentId = this.currentNode.data.id
       }
@@ -534,14 +579,6 @@ export default {
         this.documentTreeData = toTreeData(res.data)
       }).catch(_ => {
         this.$message.error('文件夹查询失败')
-      })
-    },
-    // TODO 搜索的方法没有实现
-    handleSearch() {
-      searchDocuments({ docName: this.name }).then(res => {
-        console.log(res)
-      }).catch(() => {
-
       })
     },
     // 文件夹相关

@@ -61,10 +61,3 @@ export function findDocumentTree(id) {
   })
 }
 
-export function searchDocuments(data) {
-  return request({
-    url: '/api-document/documentTemplate/search',
-    method: 'post',
-    data
-  })
-}
