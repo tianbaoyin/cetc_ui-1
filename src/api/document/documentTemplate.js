@@ -54,3 +54,17 @@ export function findDocumentTemplates(data) {
   })
 }
 
+export function findDocumentTree(id) {
+  return request({
+    url: '/api-document/documentTemplate/getTree/' + id,
+    method: 'get'
+  })
+}
+
+export function searchDocuments(data) {
+  return request({
+    url: '/api-document/documentTemplate/search',
+    method: 'post',
+    data
+  })
+}

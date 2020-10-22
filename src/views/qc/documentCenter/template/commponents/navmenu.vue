@@ -18,7 +18,7 @@
             style="float: right; padding: 5px 5px"
             icon="el-icon-plus"
             circle
-            @click="dialogVisible=true"
+            @click="openDialog"
           />
         </el-tooltip>
       </div>
@@ -32,17 +32,21 @@
           <el-button slot="append" icon="el-icon-search" size="mini" circle @click="treeFilter()" />
         </el-input>
         <el-divider />
+        <!--  accordion -->
         <el-tree
           ref="tree"
           v-loading="treeloading"
-          accordion
+          node-key="id"
           :data="treeData"
           :props="defaultProps"
-
+          :expand-on-click-node="false"
           :filter-node-method="filterNode"
+          :default-expanded-keys="expanded"
           highlight-current
           class="project-tree"
           @node-click="handleNodeClick"
+          @node-expand="handleNodeExpand"
+          @node-collapse="handleNodeCollapse"
         >
           <span slot-scope="{ node, data }" class="custom-tree-node">
             <span><i class="el-icon-folder" /> {{ node.label }}</span>
@@ -57,7 +61,7 @@
                 type="text"
                 size="mini"
                 icon="el-icon-plus"
-                @click="() => handleCreateFolderOnNode(data)"
+                @click="() => handleCreateFolderOnNode(node,data)"
               />
               <el-button
                 type="text"
@@ -71,11 +75,11 @@
       </div>
     </el-card>
     <el-dialog
+      v-dialogDrag
       :title="title"
       :visible.sync="dialogVisible"
-      :before-close="handleClose"
       :close-on-click-modal="false"
-      width="500px"
+      width="800px"
     >
       <el-form
         ref="folderForm"
@@ -85,12 +89,23 @@
       >
         <el-form-item label="父级">
           <el-cascader
+            ref="folderCascader"
             v-model="folder.parentId"
             style="width:100%"
             clearable
+            filterable
             :props="{label:'docName',value:'id',checkStrictly: true}"
             :options="treeData"
             @change="handleChangeFolder"
+          />
+        </el-form-item>
+        <el-form-item label="排序">
+          <el-input-number
+            v-model="folder.sort"
+            :min="1"
+            :max="10000"
+            label="排序"
+            style="width:100%"
           />
         </el-form-item>
         <el-form-item label="文件名称" prop="docName">
@@ -98,7 +113,7 @@
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
-        <el-button size="small" @click="cancleFolder">取 消</el-button>
+        <el-button size="small" @click="dialogVisible = false">取 消</el-button>
         <el-button size="small" type="primary" @click="handleAddFolder">确 定</el-button>
       </span>
     </el-dialog>
@@ -112,7 +127,7 @@ export default {
   name: 'DocumentProjectTree',
   data() {
     return {
-      title: '添加',
+      title: '新增',
       filterText: '',
       dialogVisible: false,
       treeloading: true,
@@ -125,11 +140,14 @@ export default {
         parentId: -1, // 默认-1
         docName: '',
         remarks: '',
+        sort: 1,
         folder: true // 默认创建的是文档
       },
       folderRules: {
         docName: [{ required: true, message: '请输入文件夹名称', trigger: 'blur' }]
-      }
+      },
+      expanded: []
+
     }
   },
   created() {
@@ -154,9 +172,28 @@ export default {
       if (!value) return true
       return data.docName.indexOf(value) !== -1
     },
+    openDialog() {
+      this.dialogVisible = true
+      this.resetfolder()
+    },
     handleNodeClick(val, node, data) {
       // 将当前的节点信息传递给父级
       this.$emit('lisnteTreeCLick', node)
+    },
+
+    handleNodeExpand(val, node, data) {
+      // 节点被展开时触发的事件
+      this.addExpanded(val.id)
+    },
+    addExpanded(val) {
+      const index = this.expanded.indexOf(val)
+      if (index < 0) {
+        this.expanded.push(val)
+      }
+    },
+    handleNodeCollapse(val, node, data) {
+      const index = this.expanded.indexOf(val.id)
+      this.expanded.splice(index, 1)
     },
     handleAddFolder() {
       this.$refs.folderForm.validate(valid => {
@@ -182,6 +219,7 @@ export default {
     updateFolder() {
       updateTemplate(this.folder).then(res => {
         this.dialogVisible = false
+        this.addExpanded(this.folder.parentId)
         this.getFoldTree()
         this.resetfolder()
         this.$message.success('文件夹更新成功！')
@@ -193,6 +231,7 @@ export default {
     createFolder() {
       saveDocumentTemplate(this.folder).then(res => {
         this.dialogVisible = false
+        this.addExpanded(this.folder.parentId)
         this.getFoldTree()
         this.resetfolder()
         this.$message.success('文件夹创建成功！')
@@ -201,25 +240,22 @@ export default {
         this.$message.error('文件夹创建失败！')
       })
     },
-    handleClose(done) {
-      this.resetfolder()
-      done()
-    },
 
-    cancleFolder() {
-      this.resetfolder()
-      this.dialogVisible = false
-    },
     handleChangeFolder(value) {
+      const folder = this.$refs['folderCascader'].getCheckedNodes()
+      console.log(folder)
       this.folder.parentId = value[value.length - 1]
+      this.folder.sort = folder[0].children.length + 1
     },
     handleEditTemplate(data) {
+      this.resetfolder()
       this.title = '编辑'
-      this.folder = data
+      this.folder = { ...data }
       this.dialogVisible = true
     },
-    handleCreateFolderOnNode(data) {
+    handleCreateFolderOnNode(node, data) {
       this.folder.parentId = data.id
+      this.folder.sort = node.childNodes.length + 1
       this.dialogVisible = true
     },
     handleDeleteTemplate(data) {
@@ -252,8 +288,11 @@ export default {
         this.$message.error('删除失败')
       })
     },
+    // 初始化表单
     resetfolder() {
-      this.$refs.folderForm.resetFields()
+      if (this.$refs.folderForm) {
+        this.$refs.folderForm.resetFields()
+      }
       this.title = '新增'
       this.folder = {
         parentId: -1, // 默认-1

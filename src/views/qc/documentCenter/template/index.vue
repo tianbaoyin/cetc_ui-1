@@ -1,6 +1,6 @@
 <template>
   <div class="app-container">
-    <el-row :gutter="6">
+    <el-row :gutter="4">
       <el-col :span="6">
         <navmenu @lisnteTreeCLick="changFolder" />
       </el-col>

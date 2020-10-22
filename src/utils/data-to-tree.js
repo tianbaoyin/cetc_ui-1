@@ -1,10 +1,8 @@
 export function toTreeData(data) {
   // 没有父节点的数据
   const parents = data.filter(value => value.parentId === -1)
-
   // 有父节点的数据
   const children = data.filter(value => value.parentId !== -1)
-
   // 定义转换方法的具体实现
   const translator = (parents, children) => {
     // 遍历父节点数据
